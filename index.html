@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#1b1530" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <title>Fahdrik</title>
+  <link rel="stylesheet" href="styles.css?v=58" />
+</head>
+<body>
+  <nav class="topbar" id="topbar" hidden>
+    <a class="brand" id="brand" href="./" aria-label="Fahdrik home"><img src="icon.svg" alt="" /><span>Fahdrik</span></a>
+    <div class="iconnav" id="iconnav"></div>
+  </nav>
+  <main id="app">
+    <header class="top">
+      <p class="greeting" id="greeting"></p>
+      <h1><span>Fahd &amp; Eirik</span></h1>
+      <p class="sub">Everything for the two of us, in one place.</p>
+      <div class="syncbar" data-syncbar hidden></div>
+    </header>
+
+    <nav class="grid" id="grid" aria-label="Sections"></nav>
+
+    <section id="detail" class="detail" hidden>
+      <h2 id="detail-title"></h2>
+      <div id="detail-body"><p>Coming soon — we'll build this one next.</p></div>
+    </section>
+  </main>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="config.js?v=58"></script>
+  <script src="cloud.js?v=58"></script>
+  <script src="calendar.js?v=58"></script>
+  <script src="todo.js?v=58"></script>
+  <script src="shopping.js?v=58"></script>
+  <script src="recipes.js?v=58"></script>
+  <script src="watch.js?v=58"></script>
+  <script src="reading.js?v=58"></script>
+  <script src="wishes.js?v=58"></script>
+  <script src="bucket.js?v=58"></script>
+  <script src="app.js?v=58"></script>
+</body>
+</html>
