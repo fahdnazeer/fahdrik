@@ -171,7 +171,7 @@ h1 span {
 .detail { padding: 8px 0 40px; text-align: left; } .detail h2 { margin-bottom: 4px; }
 
 /* Smaller type */
-html { font-size: 14px; }
+html { font-size: 14px; -webkit-text-size-adjust: 100%; }
 .cell { padding: 5px 6px; border-radius: 10px; }
 .cal-bar h3 { font-size: 1rem; }
 .cal-bar button, .todo-add button, .todo-filter button { font-size: .9rem; }
@@ -517,5 +517,5 @@ button.who:active { transform: scale(.94); }
 .bk-add-photo { aspect-ratio: 1; border-radius: 12px; border: 1px dashed rgb(var(--ov) / 30%); display: grid; place-content: center; font-size: 1.6rem; color: var(--muted); cursor: pointer; }
 .bk-done textarea { width: 100%; }
 
-/* Phones zoom the page if a field is under 16px */
-input, textarea, select { font-size: 16px; }
+/* iPhone zooms focused fields under 16px; more specific rules used inherit/14px */
+input, textarea, select { font-size: 16px !important; }
