@@ -14,10 +14,6 @@ const grid = document.getElementById("grid");
 const detail = document.getElementById("detail");
 const header = document.querySelector(".top");
 
-const h = new Date().getHours();
-document.getElementById("greeting").textContent =
-  h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
-
 sections.forEach((s) => {
   const b = document.createElement("button");
   b.className = "tile";
