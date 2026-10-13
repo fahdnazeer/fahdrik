@@ -36,10 +36,26 @@
   function notify(key, data) {
     (watchers[key] || []).forEach((fn) => { try { fn(data); } catch (e) { console.warn(e); } });
   }
+  window.stashFocus = (root) => {
+    const ae = document.activeElement;
+    return (ae && root.contains(ae) && ae.getAttribute && ae.getAttribute("name")) || "";
+  };
+  window.unstashFocus = (root, name) => {
+    if (!name) return;
+    const el = root.querySelector(`[name="${name}"]`);
+    if (el) el.focus();
+  };
+
   function rerender(key) {
     const body = document.getElementById("detail-body");
     if (body && body._storeKey === key && typeof body._rerender === "function") {
+      const ae = document.activeElement;
+      const name = ae && body.contains(ae) && ae.getAttribute && ae.getAttribute("name");
       try { body._rerender(); } catch (_) {}
+      if (name) {
+        const next = body.querySelector(`[name="${name}"]`);
+        if (next) next.focus();
+      }
     }
   }
 

@@ -143,6 +143,7 @@
 
     // ---------- list ----------
     function list() {
+      const keepName = window.stashFocus ? window.stashFocus(root) : "";
       const base = state.items.filter((i) => ui.type === "all" || i.type === ui.type);
       const count = (t) => base.filter((i) => inTab(i, t)).length;
       const shown = base.filter((i) => inTab(i, ui.tab));
@@ -196,6 +197,7 @@
                 { want: "Nothing on the list yet. Add a book to read.", reading: "Nothing in progress.", read: "No finished books yet." }[ui.tab]
               }</p>`
         }`;
+      if (window.unstashFocus) window.unstashFocus(root, keepName);
     }
 
     // ---------- detail ----------

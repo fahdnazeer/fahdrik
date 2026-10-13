@@ -65,6 +65,7 @@ window.renderTodo = function (root) {
   };
 
   function render() {
+    const keepName = window.stashFocus ? window.stashFocus(root) : "";
     const shown = todo.items.filter((t) => todo.filter === "all" || t.who === todo.filter);
     const open = shown.filter((t) => !t.done);
     const done = shown.filter((t) => t.done && !isArchived(t));
@@ -89,6 +90,7 @@ window.renderTodo = function (root) {
           : ""
       }
       ${todo.items.length > 1 ? `<p class="hint">Tip: drag a task onto another to make it a sub-item. Drag a sub-item out of its card to turn it back into a task.</p>` : ""}`;
+    if (window.unstashFocus) window.unstashFocus(root, keepName);
   }
 
   const focusSub = () => {

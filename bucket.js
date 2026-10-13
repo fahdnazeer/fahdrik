@@ -130,6 +130,7 @@
 
     // ---------- list ----------
     function list() {
+      const keepName = window.stashFocus ? window.stashFocus(root) : "";
       const todo = state.items.filter((i) => i.status !== "done");
       const done = state.items.filter((i) => i.status === "done");
       const pool = ui.tab === "done" ? done : todo;
@@ -208,6 +209,7 @@
                 .join("")}</div>`
             : `<p class="s-empty">${ui.tab === "done" ? "Nothing ticked off yet — go make some memories!" : "Nothing here yet. Add your first dream above."}</p>`
         }`;
+      if (window.unstashFocus) window.unstashFocus(root, keepName);
     }
 
     // ---------- detail ----------

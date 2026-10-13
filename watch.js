@@ -147,6 +147,7 @@
 
     // ---------- list ----------
     function list() {
+      const keepName = window.stashFocus ? window.stashFocus(root) : "";
       const count = (s) => state.items.filter((i) => i.status === s).length;
       let shown = state.items.filter((i) => i.status === ui.tab && (ui.type === "all" || i.type === ui.type));
       if (ui.tab === "watched") {
@@ -194,6 +195,7 @@
                 { want: "Nothing on the list yet. Add something you both want to see.", watching: "Nothing in progress.", watched: "Nothing watched yet." }[ui.tab]
               }</p>`
         }`;
+      if (window.unstashFocus) window.unstashFocus(root, keepName);
     }
 
     // ---------- detail ----------

@@ -74,5 +74,12 @@ window.addEventListener("popstate", () => {
 });
 if (location.hash) show(location.hash.slice(1));
 
+// Keep the add field focused when tapping Add (otherwise the button steals it).
+document.addEventListener("pointerdown", (e) => {
+  if (e.target.closest("#detail-body form.todo-add button, #detail-body form.s-add button, #detail-body form.w-add button, #detail-body form.wi-add button, #detail-body form.bk-step-add button")) {
+    e.preventDefault();
+  }
+}, true);
+
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then((r) => r.update());
 

@@ -71,6 +71,7 @@
 
     // ---------- list ----------
     function list() {
+      const keepName = window.stashFocus ? window.stashFocus(root) : "";
       const l = curList();
       const mine = state.items.filter((i) => i.list === l.id);
       const inScope = (i) => ui.who === "all" || i.who === ui.who;
@@ -136,6 +137,7 @@
         }
 
         ${state.lists.length > 1 ? `<div class="s-footer"><button data-act="deletelist">${ui.sureList ? `⚠️ Tap again to delete “${esc(l.name)}”` : "🗑 Delete list"}</button></div>` : ""}`;
+      if (window.unstashFocus) window.unstashFocus(root, keepName);
     }
 
     // ---------- detail ----------

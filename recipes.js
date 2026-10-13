@@ -121,6 +121,7 @@
     const allTags = () => [...new Set(state.items.flatMap((r) => r.tags))].sort();
 
     function list() {
+      const keepName = window.stashFocus ? window.stashFocus(root) : "";
       const q = ui.q.trim().toLowerCase();
       const shown = state.items.filter((r) => {
         if (ui.tag === "fav" && !r.fav) return false;
@@ -130,7 +131,7 @@
       });
       root.innerHTML = `
         <div class="r-top">
-          <input class="r-search" type="search" placeholder="Search recipes or ingredients…" value="${esc(ui.q)}" />
+          <input class="r-search" name="q" type="search" placeholder="Search recipes or ingredients…" value="${esc(ui.q)}" />
           <button class="r-new" data-act="new">+ New</button>
         </div>
         <div class="r-chips">
@@ -151,6 +152,7 @@
                 .join("")}</div>`
             : `<p class="s-empty">${state.items.length ? "No recipes match." : "No recipes yet. Add your first one!"}</p>`
         }`;
+      if (window.unstashFocus) window.unstashFocus(root, keepName);
     }
 
     function detail() {
