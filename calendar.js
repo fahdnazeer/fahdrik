@@ -34,11 +34,6 @@
     const d = new Date(2000, 0, 1, h, m || 0);
     return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
-  const fmtShort = (t) => {
-    if (!t) return "";
-    const [h, m] = t.split(":");
-    return m === "00" ? String(+h) : `${+h}:${m}`;
-  };
   const fmtRange = (e) => {
     if (!e.time) return "All day";
     if (!e.end || e.end === e.time) return fmtTime(e.time);
@@ -134,8 +129,7 @@
     const ymd = ymdOf(week[p.c0]);
     const firstBit = ymd === eventStart(p.e) || p.c0 === 0;
     if (!firstBit) return "\u00a0";
-    if (isSpan(p.e) || !p.e.time) return p.e.title;
-    return `${fmtShort(p.e.time)} ${p.e.title}`;
+    return p.e.title;
   }
 
   window.renderCalendar = function (root) {
@@ -167,8 +161,7 @@
             .join("");
           const chips = show
             .map((p) => {
-              const bar = isSpan(p.e) || !p.e.time ? "bar" : "timed";
-              return `<button type="button" class="cal-chip ${bar}" data-chip="${p.e.id}" style="grid-column:${p.c0 + 1} / span ${p.span};grid-row:${p.lane + 2};--c:${COLOR[p.e.who] || COLOR.both}">${esc(chipLabel(p, week))}</button>`;
+              return `<button type="button" class="cal-chip bar" data-chip="${p.e.id}" style="grid-column:${p.c0 + 1} / span ${p.span};grid-row:${p.lane + 2};--c:${COLOR[p.e.who] || COLOR.both}">${esc(chipLabel(p, week))}</button>`;
             })
             .join("");
           return `<div class="cal-week" style="--lanes:${lanes}">${days}${chips}</div>`;
