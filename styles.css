@@ -165,10 +165,12 @@ h1 span {
 .agenda-title { margin: 18px 0 8px; }
 .agenda { list-style: none; padding: 0; display: grid; gap: 8px; }
 .agenda li { display: flex; gap: 12px; padding: 12px 14px; border-radius: 14px; background: rgb(var(--ov) / 6%); border-left: 4px solid var(--c, #666); }
-.agenda li b { min-width: 64px; color: var(--muted); font-weight: 500; }
+.agenda li b { color: var(--muted); font-weight: 500; font-size: .85rem; }
 .agenda li.none { color: var(--muted); border-left-color: transparent; }
-.agenda .cal-item { align-items: center; cursor: pointer; }
-.agenda .cal-item .txt { flex: 1; min-width: 0; }
+.agenda .cal-item { align-items: flex-start; cursor: pointer; }
+.agenda .cal-item-main { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.agenda .cal-item .txt { min-width: 0; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.agenda .cal-item .who, .agenda .cal-item .del { margin-top: 2px; }
 .cal-add { display: flex; gap: 8px; margin: 0 0 12px; flex-wrap: wrap; }
 .cal-add input[name=title] { flex: 1; min-width: 140px; height: 34px; padding: 6px 12px; background: rgb(var(--ov) / 7%); color: var(--text); border: 1px solid rgb(var(--ov) / 13%); border-radius: 10px; font: inherit; }
 .cal-add input[type=time], .cal-add input[type=date], .cal-add select { height: 34px; padding: 6px 10px; background: rgb(var(--ov) / 7%); color: var(--text); border: 1px solid rgb(var(--ov) / 13%); border-radius: 10px; font: inherit; color-scheme: dark; }
@@ -188,6 +190,22 @@ h1 span {
 .cal-sheet h3 { margin: 0 28px 4px 0; font-size: 1.25rem; }
 .cal-sheet p { color: var(--muted); margin: 0 0 16px; font-size: .9rem; }
 .cal-sheet-x { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; border: 0; border-radius: 10px; background: rgb(var(--ov) / 8%); color: var(--text); cursor: pointer; }
+.cal-view { padding-top: 18px; }
+.cal-view-tools {
+  position: absolute; top: 10px; right: 10px;
+  display: flex; gap: 4px;
+}
+.cal-view-tools button {
+  width: 36px; height: 36px; padding: 0;
+  display: grid; place-items: center;
+  border: 0; border-radius: 10px;
+  background: transparent; color: var(--muted); cursor: pointer;
+}
+.cal-view-tools button:hover { background: rgb(var(--ov) / 10%); color: var(--text); }
+.cal-view-tools svg { width: 20px; height: 20px; }
+.cal-view-dot { width: 12px; height: 12px; border-radius: 4px; margin: 4px 0 12px; }
+.cal-view h3 { margin: 0 120px 6px 0; font-size: 1.35rem; }
+.cal-view p { margin: 0 0 12px; }
 .cal-add-stack { flex-direction: column; align-items: stretch; margin: 0; }
 .cal-add-stack input[name=title] { min-width: 0; width: 100%; height: 42px; }
 .cal-add-stack > button { width: 100%; height: 42px; }

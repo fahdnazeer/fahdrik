@@ -57,7 +57,11 @@
 
   const state = window.store.get(KEY, { events: [] });
   if (!Array.isArray(state.events)) state.events = [];
-  const ui = { month: new Date(), selected: new Date(), filter: "all", who: "both", editId: null, sheetFocus: false };
+  const ui = { month: new Date(), selected: new Date(), filter: "all", who: "both", editId: null, sheetMode: "view", sheetFocus: false };
+  const ICO = {
+    edit: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>`,
+    trash: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>`,
+  };
   let lastTap = { ymd: "", at: 0 };
   let selectTimer = 0;
   let ignoreBackdrop = 0;
@@ -195,8 +199,10 @@
             ? agenda
                 .map(
                   (e) => `<li class="cal-item" data-id="${e.id}" style="--c:${COLOR[e.who] || COLOR.both}">
-                    <b>${fmtWhen(e)}</b>
-                    <span class="txt">${esc(e.title)}</span>
+                    <div class="cal-item-main">
+                      <span class="txt">${esc(e.title)}</span>
+                      <b>${fmtWhen(e)}</b>
+                    </div>
                     <button type="button" class="who ${e.who}" data-act="who">${WHO[e.who]}</button>
                     <button type="button" class="del" data-act="del" aria-label="Delete">✕</button>
                   </li>`
@@ -207,7 +213,21 @@
         ${icsUrl() ? `<button type="button" class="cal-ics" data-act="ics">Copy Google Calendar link</button><p class="cal-ics-hint">Google Calendar → Other calendars → From URL. Updates can take a few hours.</p>` : ""}
         ${sheetOn ? "" : `<button type="button" class="cal-fab" data-act="add" aria-label="Add a plan"></button>`}
         ${
-          sheetOn
+          sheetOn && editing && ui.sheetMode === "view"
+            ? `<div class="cal-overlay">
+                <div class="cal-sheet cal-view" role="dialog" aria-labelledby="cal-add-title">
+                  <div class="cal-view-tools">
+                    <button type="button" data-act="edit-plan" aria-label="Edit">${ICO.edit}</button>
+                    <button type="button" data-act="del-plan" aria-label="Delete">${ICO.trash}</button>
+                    <button type="button" data-act="close-add" aria-label="Close">✕</button>
+                  </div>
+                  <div class="cal-view-dot" style="background:${COLOR[editing.who] || COLOR.both}"></div>
+                  <h3 id="cal-add-title">${esc(editing.title)}</h3>
+                  <p>${esc(fmtWhen(editing))}</p>
+                  <span class="who ${editing.who}">${WHO[editing.who]}</span>
+                </div>
+              </div>`
+            : sheetOn
             ? `<div class="cal-overlay">
                 <div class="cal-sheet" role="dialog" aria-labelledby="cal-add-title">
                   <button type="button" class="cal-sheet-x" data-act="close-add" aria-label="Close">✕</button>
@@ -231,29 +251,30 @@
               </div>`
             : ""
         }`;
-      if (sheetOn && ui.sheetFocus) {
+      if (sheetOn && ui.sheetMode !== "view" && ui.sheetFocus) {
         ui.sheetFocus = false;
         const inp = root.querySelector(".cal-overlay input[name=title]");
         if (inp) inp.focus();
       } else if (window.unstashFocus) window.unstashFocus(root, keepName);
     }
 
-    function openSheet(id) {
+    function openSheet(id, mode) {
       const was = ui.editId != null;
       ui.editId = id;
-      ui.sheetFocus = true;
+      ui.sheetMode = mode || (id === "new" ? "edit" : "view");
+      ui.sheetFocus = ui.sheetMode !== "view";
       ignoreBackdrop = Date.now() + 500;
-      if (!was && window.goInner) window.goInner(() => { ui.editId = null; render(); });
+      if (!was && window.goInner) window.goInner(() => { ui.editId = null; ui.sheetMode = "view"; render(); });
       render();
     }
     function openAdd() {
       if (ui.editId != null) return;
-      openSheet("new");
+      openSheet("new", "edit");
     }
     function closeAdd() {
       if (ui.editId == null) return;
       if (window.appBack && window.appBack.length && window.goBack) window.goBack();
-      else { ui.editId = null; render(); }
+      else { ui.editId = null; ui.sheetMode = "view"; render(); }
     }
 
     function fillEvent(ev, form, fallbackStart) {
@@ -292,15 +313,30 @@
         const ev = fillEvent({ id: uid() }, e.target, ymdOf(ui.selected));
         if (!ev) return;
         state.events.push(ev);
+        ui.editId = ev.id;
       }
       save();
-      ui.editId = null;
-      if (window.dropInner) window.dropInner();
+      ui.sheetMode = "view";
+      ui.sheetFocus = false;
       render();
     };
 
     root.onclick = (e) => {
-      if (e.target.closest(".cal-sheet") && !e.target.closest("[data-act=close-add]")) return;
+      if (e.target.closest(".cal-sheet")) {
+        const sheetAct = e.target.closest("[data-act]")?.dataset.act;
+        if (sheetAct === "close-add") return closeAdd();
+        if (sheetAct === "edit-plan") {
+          ui.sheetMode = "edit";
+          ui.sheetFocus = true;
+          return render();
+        }
+        if (sheetAct === "del-plan") {
+          state.events = state.events.filter((x) => x.id !== ui.editId);
+          save();
+          return closeAdd();
+        }
+        return;
+      }
       if (e.target.classList && e.target.classList.contains("cal-overlay")) {
         if (Date.now() < ignoreBackdrop) return;
         const active = document.activeElement;
