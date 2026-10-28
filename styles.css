@@ -140,7 +140,7 @@ h1 span {
   margin: 1px 2px 0;
   min-width: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
+  text-overflow: clip;
   white-space: nowrap;
   font-size: 11px;
   font-weight: 650;
