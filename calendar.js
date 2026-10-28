@@ -62,6 +62,7 @@
   let ignoreBackdrop = 0;
   let swipe = null;
   let skipClick = false;
+  let sliding = false;
   const save = () => window.store.save(KEY, state);
   window.store.watchState(KEY, state);
 
@@ -134,6 +135,28 @@
     return p.e.title;
   }
 
+  function monthPane(y, m, selY, today) {
+    return monthWeeks(y, m)
+      .map((week) => {
+        const { show, extra, lanes } = layoutWeek(week);
+        const days = week
+          .map((date, i) => {
+            const ymd = ymdOf(date);
+            const out = date.getMonth() !== m ? "out" : "";
+            const td = sameDay(date, today) ? "today" : "";
+            const sel = ymd === selY ? "sel" : "";
+            const more = extra[i] ? `<span class="cal-more" style="grid-column:${i + 1};grid-row:${lanes + 2}">+${extra[i]}</span>` : "";
+            return `<button type="button" class="cell ${out} ${td} ${sel}${i === 6 ? " last" : ""}" data-ymd="${ymd}" style="grid-column:${i + 1}"><span class="num">${date.getDate()}</span></button>${more}`;
+          })
+          .join("");
+        const chips = show
+          .map((p) => `<button type="button" class="cal-chip bar" data-chip="${p.e.id}" style="grid-column:${p.c0 + 1} / span ${p.span};grid-row:${p.lane + 2};--c:${COLOR[p.e.who] || COLOR.both}">${esc(chipLabel(p, week))}</button>`)
+          .join("");
+        return `<div class="cal-week" style="--lanes:${lanes}">${days}${chips}</div>`;
+      })
+      .join("");
+  }
+
   window.renderCalendar = function (root) {
     if (root._ac) root._ac.abort();
     root._ac = new AbortController();
@@ -145,30 +168,9 @@
       const y = ui.month.getFullYear(), m = ui.month.getMonth();
       const first = new Date(y, m, 1);
       const today = new Date();
-      const weeks = monthWeeks(y, m);
       const selY = ymdOf(ui.selected);
-
-      const weekHtml = weeks
-        .map((week) => {
-          const { show, extra, lanes } = layoutWeek(week);
-          const days = week
-            .map((date, i) => {
-              const ymd = ymdOf(date);
-              const out = date.getMonth() !== m ? "out" : "";
-              const td = sameDay(date, today) ? "today" : "";
-              const sel = ymd === selY ? "sel" : "";
-              const more = extra[i] ? `<span class="cal-more" style="grid-column:${i + 1};grid-row:${lanes + 2}">+${extra[i]}</span>` : "";
-              return `<button type="button" class="cell ${out} ${td} ${sel}${i === 6 ? " last" : ""}" data-ymd="${ymd}" style="grid-column:${i + 1}"><span class="num">${date.getDate()}</span></button>${more}`;
-            })
-            .join("");
-          const chips = show
-            .map((p) => {
-              return `<button type="button" class="cal-chip bar" data-chip="${p.e.id}" style="grid-column:${p.c0 + 1} / span ${p.span};grid-row:${p.lane + 2};--c:${COLOR[p.e.who] || COLOR.both}">${esc(chipLabel(p, week))}</button>`;
-            })
-            .join("");
-          return `<div class="cal-week" style="--lanes:${lanes}">${days}${chips}</div>`;
-        })
-        .join("");
+      const prevM = new Date(y, m - 1, 1);
+      const nextM = new Date(y, m + 1, 1);
 
       const agenda = eventsOn(ui.selected);
       const untilVal = ymdOf(ui.selected);
@@ -184,7 +186,13 @@
           <button type="button" class="cal-today" data-act="today">Today</button>
         </div>
         <div class="weekdays">${["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => `<span>${d}</span>`).join("")}</div>
-        <div class="month">${weekHtml}</div>
+        <div class="cal-board">
+          <div class="cal-track">
+            <div class="month">${monthPane(prevM.getFullYear(), prevM.getMonth(), selY, today)}</div>
+            <div class="month">${monthPane(y, m, selY, today)}</div>
+            <div class="month">${monthPane(nextM.getFullYear(), nextM.getMonth(), selY, today)}</div>
+          </div>
+        </div>
         <div class="todo-filter">${["all", "me", "partner", "both"]
           .map((f) => `<button type="button" data-filter="${f}" class="${ui.filter === f ? "on" : ""}">${f === "all" ? "All" : WHO[f]}</button>`)
           .join("")}</div>
@@ -251,6 +259,7 @@
         const inp = root.querySelector(".cal-overlay input[name=title]");
         if (inp) inp.focus();
       } else if (window.unstashFocus) window.unstashFocus(root, keepName);
+      parkTrack();
     }
 
     function openSheet(id, mode) {
@@ -298,9 +307,40 @@
       }
     }
 
-    function shiftMonth(dir) {
-      ui.month = new Date(ui.month.getFullYear(), ui.month.getMonth() + dir, 1);
-      render();
+    function boardW() {
+      return root.querySelector(".cal-board")?.clientWidth || 0;
+    }
+    function trackEl() {
+      return root.querySelector(".cal-track");
+    }
+    function parkTrack() {
+      const t = trackEl();
+      const w = boardW();
+      if (!t || !w) return;
+      t.style.transition = "none";
+      t.style.transform = `translateX(${-w}px)`;
+    }
+    function animateMonth(dir) {
+      if (sliding) return;
+      const t = trackEl();
+      const w = boardW();
+      if (!t || !w) {
+        ui.month = new Date(ui.month.getFullYear(), ui.month.getMonth() + dir, 1);
+        return render();
+      }
+      sliding = true;
+      t.style.transition = "transform .32s cubic-bezier(.22,.72,.2,1)";
+      t.style.transform = `translateX(${dir > 0 ? -2 * w : 0}px)`;
+      let once = false;
+      const done = () => {
+        if (once) return;
+        once = true;
+        sliding = false;
+        ui.month = new Date(ui.month.getFullYear(), ui.month.getMonth() + dir, 1);
+        render();
+      };
+      t.addEventListener("transitionend", done, { once: true });
+      setTimeout(done, 400);
     }
 
     root.onsubmit = (e) => {
@@ -328,25 +368,50 @@
     }, { capture: true, signal });
 
     root.addEventListener("pointerdown", (e) => {
-      if (ui.editId != null) return;
-      if (!e.target.closest(".month")) return;
-      swipe = { x: e.clientX, y: e.clientY, id: e.pointerId };
+      if (sliding || ui.editId != null) return;
+      if (!e.target.closest(".cal-board")) return;
+      swipe = { x: e.clientX, y: e.clientY, id: e.pointerId, live: false };
+    }, { signal });
+
+    root.addEventListener("pointermove", (e) => {
+      if (!swipe || e.pointerId !== swipe.id || sliding) return;
+      const dx = e.clientX - swipe.x;
+      const dy = e.clientY - swipe.y;
+      if (!swipe.live) {
+        if (Math.abs(dx) < 12) return;
+        if (Math.abs(dy) > Math.abs(dx)) { swipe = null; return; }
+        swipe.live = true;
+        skipClick = true;
+        try { e.target.setPointerCapture?.(swipe.id); } catch (_) {}
+      }
+      const t = trackEl();
+      const w = boardW();
+      if (!t || !w) return;
+      t.style.transition = "none";
+      t.style.transform = `translateX(${Math.max(-2 * w, Math.min(0, -w + dx))}px)`;
     }, { signal });
 
     root.addEventListener("pointerup", (e) => {
       if (!swipe || e.pointerId !== swipe.id) return;
       const dx = e.clientX - swipe.x;
       const dy = e.clientY - swipe.y;
+      const live = swipe.live;
       swipe = null;
-      if (ui.editId != null) return;
-      if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.15) return;
-      skipClick = true;
+      if (!live || sliding || ui.editId != null) return;
       lastTap = { ymd: "", at: 0 };
       clearTimeout(selectTimer);
-      shiftMonth(dx < 0 ? 1 : -1);
+      const w = boardW();
+      if (Math.abs(dx) > Math.min(56, w * 0.18) && Math.abs(dx) > Math.abs(dy) * 0.85) {
+        animateMonth(dx < 0 ? 1 : -1);
+        return;
+      }
+      const t = trackEl();
+      if (!t || !w) return;
+      t.style.transition = "transform .22s ease";
+      t.style.transform = `translateX(${-w}px)`;
     }, { signal });
 
-    root.addEventListener("pointercancel", () => { swipe = null; }, { signal });
+    root.addEventListener("pointercancel", () => { swipe = null; parkTrack(); }, { signal });
 
     root.onclick = (e) => {
       if (e.target.closest(".cal-sheet")) {
@@ -376,7 +441,7 @@
       }
       if (ui.editId != null) return;
       const nav = e.target.closest("[data-nav]");
-      if (nav) return shiftMonth(+nav.dataset.nav);
+      if (nav) return animateMonth(+nav.dataset.nav);
       const chip = e.target.closest("[data-chip]");
       if (chip) {
         lastTap = { ymd: "", at: 0 };
@@ -414,8 +479,12 @@
       if (act === "close-add") return closeAdd();
       if (act === "today") {
         const n = new Date();
-        ui.month = new Date(n.getFullYear(), n.getMonth(), 1);
         ui.selected = n;
+        const cur = ui.month.getFullYear() * 12 + ui.month.getMonth();
+        const tgt = n.getFullYear() * 12 + n.getMonth();
+        if (tgt === cur) return render();
+        if (Math.abs(tgt - cur) === 1) return animateMonth(tgt > cur ? 1 : -1);
+        ui.month = new Date(n.getFullYear(), n.getMonth(), 1);
         return render();
       }
       if (act === "ics") {
