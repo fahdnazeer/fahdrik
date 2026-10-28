@@ -143,6 +143,7 @@
 
     // ---------- list ----------
     function list() {
+      const keepName = window.stashFocus ? window.stashFocus(root) : "";
       const base = state.items.filter((i) => ui.type === "all" || i.type === ui.type);
       const count = (t) => base.filter((i) => inTab(i, t)).length;
       const shown = base.filter((i) => inTab(i, ui.tab));
@@ -196,6 +197,7 @@
                 { want: "Nothing on the list yet. Add a book to read.", reading: "Nothing in progress.", read: "No finished books yet." }[ui.tab]
               }</p>`
         }`;
+      if (window.unstashFocus) window.unstashFocus(root, keepName);
     }
 
     // ---------- detail ----------
@@ -370,7 +372,11 @@
 
     root.onclick = (e) => {
       const card = e.target.closest("[data-open]");
-      if (card) { ui.id = +card.dataset.open; ui.view = "detail"; ui.sure = false; ui.notFound = false; window.scrollTo(0, 0); return render(); }
+      if (card) {
+        ui.id = +card.dataset.open; ui.view = "detail"; ui.sure = false; ui.notFound = false; window.scrollTo(0, 0);
+        if (window.goInner) window.goInner(() => { ui.view = "list"; render(); });
+        return render();
+      }
 
       const star = e.target.closest(".star");
       if (star) {
@@ -412,7 +418,7 @@
       const act = e.target.closest("[data-act]")?.dataset.act;
       if (!act) return;
       const it = state.items.find((x) => x.id === ui.id);
-      if (act === "back") ui.view = "list";
+      if (act === "back") { if (window.goBack) return window.goBack(); ui.view = "list"; }
       else if (act === "addtype") ui.addType = ui.addType === "book" ? "audio" : "book";
       else if (act === "sort") ui.sort = ui.sort === "rating" ? "date" : "rating";
       else if (act === "random") {
@@ -420,6 +426,7 @@
         ui.id = pool[Math.floor(Math.random() * pool.length)].id;
         ui.view = "detail";
         window.scrollTo(0, 0);
+        if (window.goInner) window.goInner(() => { ui.view = "list"; render(); });
       }
       else if (act === "find") {
         ui.finding = true; ui.notFound = false;
@@ -433,7 +440,7 @@
       }
       else if (act === "del") {
         if (!ui.sure) { ui.sure = true; setTimeout(() => { ui.sure = false; if (ui.view === "detail") render(); }, 3000); }
-        else { state.items = state.items.filter((x) => x !== it); save(); ui.view = "list"; ui.sure = false; }
+        else { state.items = state.items.filter((x) => x !== it); save(); ui.view = "list"; ui.sure = false; if (window.dropInner) window.dropInner(); }
       }
       else return;
       render();

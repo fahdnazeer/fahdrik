@@ -54,13 +54,44 @@
     lists: [{ id: 1, name: "Groceries", items: [], groceries: true, history: {} }], // history: name -> {cat,count}
     current: 1,
   });
-  // Migration: only the first list is the "groceries" list (aisles + suggestions). History is per list.
-  state.lists.forEach((l, i) => {
-    if (l.groceries === undefined) l.groceries = i === 0;
-    if (!l.history) l.history = l.groceries && state.history ? state.history : {};
-  });
-  delete state.history;
+  function ensureGroceries() {
+    if (!Array.isArray(state.lists)) state.lists = [];
+    state.lists.forEach((l, i) => {
+      if (l.groceries === undefined) l.groceries = i === 0;
+      if (!l.history) l.history = l.groceries && state.history ? state.history : {};
+    });
+    delete state.history;
+    let groceries = state.lists.find((l) => l.groceries) || state.lists.find((l) => /^groceries$/i.test(l.name));
+    let changed = false;
+    if (!groceries) {
+      groceries = { id: uid(), name: "Groceries", items: [], groceries: true, history: {} };
+      state.lists.unshift(groceries);
+      changed = true;
+    }
+    if (groceries.name !== "Groceries") { groceries.name = "Groceries"; changed = true; }
+    if (!groceries.groceries) { groceries.groceries = true; changed = true; }
+    state.lists.forEach((l) => {
+      if (l !== groceries && l.groceries) { l.groceries = false; changed = true; }
+    });
+    const extras = state.lists.filter((l) => l !== groceries && /^groceries$/i.test(l.name || ""));
+    extras.forEach((l) => {
+      (l.items || []).forEach((item) => groceries.items.push(item));
+      Object.assign(groceries.history || (groceries.history = {}), l.history || {});
+      state.lists = state.lists.filter((x) => x !== l);
+      changed = true;
+    });
+    if (state.lists[0] !== groceries) {
+      state.lists = [groceries, ...state.lists.filter((l) => l !== groceries)];
+      changed = true;
+    }
+    if (state.current && !state.lists.some((l) => l.id === state.current)) {
+      state.current = groceries.id;
+      changed = true;
+    }
+    return changed;
+  }
   const save = () => window.store.save(KEY, state);
+  if (ensureGroceries()) save();
   window.store.watchState(KEY, state);
   const cur = () => state.lists.find((l) => l.id === state.current) || state.lists[0];
 
@@ -87,6 +118,8 @@
     const signal = root._ac.signal;
     root._storeKey = KEY;
     function render(focusInput) {
+      if (ensureGroceries()) save();
+      const keepFocus = focusInput || root.querySelector("input[name=text]") === document.activeElement;
       const list = cur();
       const open = list.items.filter((i) => !i.done);
       const done = list.items.filter((i) => i.done);
@@ -118,7 +151,7 @@
       root.innerHTML = `
         <div class="s-tabs">
           ${state.lists
-            .map((l) => `<button class="s-tab ${l.id === list.id ? "on" : ""}" data-list="${l.id}">${esc(l.name)}</button>`)
+            .map((l) => `<button class="s-tab ${l.id === list.id ? "on" : ""}" data-list="${l.id}" ${l.groceries ? 'data-locked="1" title="Groceries stays here"' : ""}>${esc(l.name)}</button>`)
             .join("")}
           <button class="s-tab new" data-act="newlist" title="New list">+</button>
         </div>
@@ -160,9 +193,10 @@
 
         <div class="s-footer">
           ${open.length ? `<button data-act="uncheck-all" ${done.length ? "" : "hidden"}>↺ Uncheck all</button>` : ""}
-          ${state.lists.length > 1 ? `<button data-act="deletelist">🗑 Delete list</button>` : ""}
+          ${state.lists.length > 1 && !list.groceries ? `<button data-act="deletelist">🗑 Delete list</button>` : ""}
         </div>`;
-      if (focusInput) root.querySelector("input[name=text]").focus();
+      const inp = root.querySelector("input[name=text]");
+      if (keepFocus && inp) inp.focus();
     }
 
     function addItem(raw) {
@@ -264,6 +298,7 @@
         };
         return;
       } else if (act === "deletelist") {
+        if (list.groceries) return;
         if (!b.dataset.sure) {
           b.dataset.sure = "1";
           b.textContent = `⚠️ Tap again to delete “${list.name}”`;
@@ -293,6 +328,7 @@
       const tab = e.target.closest(".s-tab[data-list]");
       if (tab) {
         const l = state.lists.find((x) => x.id === +tab.dataset.list);
+        if (!l || l.groceries) return;
         const input = document.createElement("input");
         input.className = "edit tab-edit";
         input.value = l.name;

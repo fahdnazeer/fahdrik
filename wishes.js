@@ -71,6 +71,7 @@
 
     // ---------- list ----------
     function list() {
+      const keepName = window.stashFocus ? window.stashFocus(root) : "";
       const l = curList();
       const mine = state.items.filter((i) => i.list === l.id);
       const inScope = (i) => ui.who === "all" || i.who === ui.who;
@@ -136,6 +137,7 @@
         }
 
         ${state.lists.length > 1 ? `<div class="s-footer"><button data-act="deletelist">${ui.sureList ? `⚠️ Tap again to delete “${esc(l.name)}”` : "🗑 Delete list"}</button></div>` : ""}`;
+      if (window.unstashFocus) window.unstashFocus(root, keepName);
     }
 
     // ---------- detail ----------
@@ -279,7 +281,11 @@
 
     root.onclick = (e) => {
       const card = e.target.closest("[data-open]");
-      if (card) { ui.id = +card.dataset.open; ui.view = "detail"; ui.sure = false; window.scrollTo(0, 0); return render(); }
+      if (card) {
+        ui.id = +card.dataset.open; ui.view = "detail"; ui.sure = false; window.scrollTo(0, 0);
+        if (window.goInner) window.goInner(() => { ui.view = "list"; render(); });
+        return render();
+      }
 
       const lst = e.target.closest("[data-list]");
       if (lst) { if (+lst.dataset.list !== state.current) { state.current = +lst.dataset.list; ui.sureList = false; save(); render(); } return; }
@@ -300,13 +306,13 @@
       const act = e.target.closest("[data-act]")?.dataset.act;
       if (!act) return;
       const it = state.items.find((x) => x.id === ui.id);
-      if (act === "back") ui.view = "list";
+      if (act === "back") { if (window.goBack) return window.goBack(); ui.view = "list"; }
       else if (act === "sort") { const k = Object.keys(SORTS); ui.sort = k[(k.indexOf(ui.sort) + 1) % k.length]; }
       else if (act === "buy") { it.status = "bought"; it.boughtAt = Date.now(); save(); }
       else if (act === "unbuy") { it.status = "wish"; it.boughtAt = null; save(); }
       else if (act === "del") {
         if (!ui.sure) { ui.sure = true; setTimeout(() => { ui.sure = false; if (ui.view === "detail") render(); }, 3000); }
-        else { state.items = state.items.filter((x) => x !== it); save(); ui.view = "list"; ui.sure = false; }
+        else { state.items = state.items.filter((x) => x !== it); save(); ui.view = "list"; ui.sure = false; if (window.dropInner) window.dropInner(); }
       }
       else if (act === "newlist") {
         const input = document.createElement("input");

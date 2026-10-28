@@ -130,6 +130,7 @@
 
     // ---------- list ----------
     function list() {
+      const keepName = window.stashFocus ? window.stashFocus(root) : "";
       const todo = state.items.filter((i) => i.status !== "done");
       const done = state.items.filter((i) => i.status === "done");
       const pool = ui.tab === "done" ? done : todo;
@@ -208,6 +209,7 @@
                 .join("")}</div>`
             : `<p class="s-empty">${ui.tab === "done" ? "Nothing ticked off yet — go make some memories!" : "Nothing here yet. Add your first dream above."}</p>`
         }`;
+      if (window.unstashFocus) window.unstashFocus(root, keepName);
     }
 
     // ---------- detail ----------
@@ -398,7 +400,11 @@
         return render();
       }
       const open = e.target.closest("[data-open]");
-      if (open) { ui.id = +open.dataset.open; ui.view = "detail"; ui.sure = false; window.scrollTo(0, 0); return render(); }
+      if (open) {
+        ui.id = +open.dataset.open; ui.view = "detail"; ui.sure = false; window.scrollTo(0, 0);
+        if (window.goInner) window.goInner(() => { ui.view = "list"; render(); });
+        return render();
+      }
 
       const idea = e.target.closest("[data-idea]");
       if (idea) { const [t, c] = idea.dataset.idea.split("|"); addItem(t, c); return render(); }
@@ -421,7 +427,7 @@
       const it = state.items.find((x) => x.id === ui.id);
       const stepId = e.target.closest("[data-step]")?.dataset.step;
 
-      if (act === "back") ui.view = "list";
+      if (act === "back") { if (window.goBack) return window.goBack(); ui.view = "list"; }
       else if (act === "ideas") ui.ideas = !ui.ideas;
       else if (act === "sort") { const k = Object.keys(SORTS); ui.sort = k[(k.indexOf(ui.sort) + 1) % k.length]; }
       else if (act === "someday") { it.date = null; save(); }
@@ -432,7 +438,7 @@
       else if (act === "photodel") { it.photos.splice(+btn.dataset.i, 1); save(); }
       else if (act === "del") {
         if (!ui.sure) { ui.sure = true; setTimeout(() => { ui.sure = false; if (ui.view === "detail") render(); }, 3000); }
-        else { state.items = state.items.filter((x) => x !== it); save(); ui.view = "list"; ui.sure = false; }
+        else { state.items = state.items.filter((x) => x !== it); save(); ui.view = "list"; ui.sure = false; if (window.dropInner) window.dropInner(); }
       }
       else return;
       render();

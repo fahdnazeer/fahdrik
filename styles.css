@@ -22,7 +22,6 @@ body {
 }
 #app { max-width: 1000px; margin: 0 auto; padding: 32px 20px 48px; }
 .top { margin-bottom: 28px; }
-.greeting { color: var(--muted); font-size: .95rem; margin-bottom: 6px; }
 h1 { font-size: clamp(2rem, 6vw, 3.2rem); letter-spacing: -.02em; }
 h1 span {
   background: linear-gradient(90deg, #a78bfa, #f472b6, #fbbf24);
@@ -90,7 +89,7 @@ h1 span {
 .cal-bar { display: flex; align-items: center; gap: 10px; margin: 16px 0; clear: both; }
 .cal-bar h3 { flex: 1; text-align: center; font-size: 1.2rem; }
 .cal-bar button { background: rgb(var(--ov) / 8%); color: var(--text); border: 1px solid rgb(var(--ov) / 13%); border-radius: 12px; padding: 8px 14px; font: inherit; cursor: pointer; }
-.cal-bar .connect { background: linear-gradient(90deg, #7c5cf0, #f472b6); border: 0; font-weight: 600; }
+.cal-bar .cal-today { font-weight: 600; white-space: nowrap; }
 .cal-status { color: var(--muted); font-size: .85rem; margin-bottom: 8px; }
 .weekdays, .month { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
 .weekdays span { text-align: center; color: var(--muted); font-size: .75rem; padding: 4px 0; }
@@ -108,6 +107,15 @@ h1 span {
 .agenda li { display: flex; gap: 12px; padding: 12px 14px; border-radius: 14px; background: rgb(var(--ov) / 6%); border-left: 4px solid var(--c, #666); }
 .agenda li b { min-width: 64px; color: var(--muted); font-weight: 500; }
 .agenda li.none { color: var(--muted); border-left-color: transparent; }
+.agenda .cal-item { align-items: center; }
+.agenda .cal-item .txt { flex: 1; min-width: 0; }
+.cal-add { display: flex; gap: 8px; margin: 0 0 12px; flex-wrap: wrap; }
+.cal-add input[name=title] { flex: 1; min-width: 140px; height: 34px; padding: 6px 12px; background: rgb(var(--ov) / 7%); color: var(--text); border: 1px solid rgb(var(--ov) / 13%); border-radius: 10px; font: inherit; }
+.cal-add input[type=time], .cal-add select { height: 34px; padding: 6px 10px; background: rgb(var(--ov) / 7%); color: var(--text); border: 1px solid rgb(var(--ov) / 13%); border-radius: 10px; font: inherit; color-scheme: dark; }
+.cal-add select option { color: #000; }
+.cal-add button { height: 34px; padding: 0 16px; border: 0; border-radius: 10px; background: linear-gradient(90deg, #60a5fa, #a78bfa); color: #fff; font-weight: 700; cursor: pointer; }
+.cal-ics { display: block; margin: 18px 0 6px; background: none; border: 0; color: var(--muted); font: inherit; font-size: .85rem; text-decoration: underline; cursor: pointer; padding: 0; }
+.cal-ics-hint { font-size: .75rem; color: var(--muted); margin: 0 0 12px; }
 
 /* To-do */
 .detail:has(.todo-add) { text-align: left; }
@@ -167,11 +175,11 @@ h1 span {
 @media (max-width: 420px) { .topbar { padding: 8px 10px; gap: 6px; } .iconnav button { height: 36px; font-size: 1.05rem; border-radius: 10px; } .brand img { width: 26px; height: 26px; } }
 
 [hidden] { display: none !important; }
-.detail, #detail-body { min-width: 0; max-width: 100%; overflow-x: hidden; }
+.detail, #detail-body { min-width: 0; max-width: 100%; overflow-x: clip; }
 .detail { padding: 8px 0 40px; text-align: left; } .detail h2 { margin-bottom: 4px; }
 
 /* Smaller type */
-html { font-size: 14px; }
+html { font-size: 14px; -webkit-text-size-adjust: 100%; }
 .cell { padding: 5px 6px; border-radius: 10px; }
 .cal-bar h3 { font-size: 1rem; }
 .cal-bar button, .todo-add button, .todo-filter button { font-size: .9rem; }
@@ -516,3 +524,11 @@ button.who:active { transform: scale(.94); }
 .bk-photo button { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; border: 0; border-radius: 50%; background: #000a; color: #fff; cursor: pointer; font-size: .7rem; }
 .bk-add-photo { aspect-ratio: 1; border-radius: 12px; border: 1px dashed rgb(var(--ov) / 30%); display: grid; place-content: center; font-size: 1.6rem; color: var(--muted); cursor: pointer; }
 .bk-done textarea { width: 100%; }
+
+/* iPhone zooms focused fields under 16px; more specific rules used inherit/14px */
+input, textarea, select { font-size: 16px !important; }
+/* Keep the blue focus ring inside the field so overflow doesn't clip the left edge */
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 2px #7dd3fc;
+}

@@ -14,10 +14,6 @@ const grid = document.getElementById("grid");
 const detail = document.getElementById("detail");
 const header = document.querySelector(".top");
 
-const h = new Date().getHours();
-document.getElementById("greeting").textContent =
-  h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
-
 sections.forEach((s) => {
   const b = document.createElement("button");
   b.className = "tile";
@@ -41,9 +37,29 @@ sections.forEach((s) => {
   iconnav.appendChild(b);
 });
 
+let sectionId = "";
+let skipHistory = false;
+window.appBack = [];
+
+window.goInner = function (undo) {
+  window.appBack.push(undo);
+  history.pushState({ s: sectionId, n: window.appBack.length }, "", "#" + sectionId);
+};
+window.goBack = function () {
+  if (window.appBack.length) history.back();
+};
+window.dropInner = function () {
+  if (!window.appBack.length) return;
+  window.appBack.pop();
+  history.replaceState({ s: sectionId }, "", "#" + sectionId);
+};
+
 function show(id) {
   const s = sections.find((x) => x.id === id);
   if (!s) return home();
+  const fromHome = !sectionId;
+  sectionId = id;
+  window.appBack = [];
   document.getElementById("detail-title").textContent = s.name;
   const body = document.getElementById("detail-body");
   if (id === "calendar") window.renderCalendar(body);
@@ -59,9 +75,14 @@ function show(id) {
   topbar.hidden = false;
   iconnav.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.id === id));
   detail.hidden = false;
-  history.pushState(null, "", "#" + id);
+  if (!skipHistory) {
+    if (fromHome) history.pushState({ s: id }, "", "#" + id);
+    else history.replaceState({ s: id }, "", "#" + id);
+  }
 }
 function home() {
+  sectionId = "";
+  window.appBack = [];
   grid.hidden = header.hidden = false;
   topbar.hidden = true;
   detail.hidden = true;
@@ -73,10 +94,30 @@ document.getElementById("brand").onclick = (e) => {
   window.scrollTo(0, 0);
 };
 window.addEventListener("popstate", () => {
+  if (window.appBack.length) {
+    const undo = window.appBack.pop();
+    try { undo(); } catch (_) {}
+    return;
+  }
   const id = location.hash.slice(1);
-  id ? show(id) : home();
+  skipHistory = true;
+  if (id) show(id);
+  else home();
+  skipHistory = false;
 });
-if (location.hash) show(location.hash.slice(1));
+if (location.hash) {
+  skipHistory = true;
+  show(location.hash.slice(1));
+  skipHistory = false;
+  history.replaceState({ s: sectionId }, "", location.hash);
+}
+
+// Keep the add field focused when tapping Add (otherwise the button steals it).
+document.addEventListener("pointerdown", (e) => {
+  if (e.target.closest("#detail-body form.todo-add button, #detail-body form.s-add button, #detail-body form.w-add button, #detail-body form.wi-add button, #detail-body form.bk-step-add button, #detail-body form.cal-add button")) {
+    e.preventDefault();
+  }
+}, true);
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then((r) => r.update());
 

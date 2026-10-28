@@ -121,6 +121,7 @@
     const allTags = () => [...new Set(state.items.flatMap((r) => r.tags))].sort();
 
     function list() {
+      const keepName = window.stashFocus ? window.stashFocus(root) : "";
       const q = ui.q.trim().toLowerCase();
       const shown = state.items.filter((r) => {
         if (ui.tag === "fav" && !r.fav) return false;
@@ -130,7 +131,7 @@
       });
       root.innerHTML = `
         <div class="r-top">
-          <input class="r-search" type="search" placeholder="Search recipes or ingredients…" value="${esc(ui.q)}" />
+          <input class="r-search" name="q" type="search" placeholder="Search recipes or ingredients…" value="${esc(ui.q)}" />
           <button class="r-new" data-act="new">+ New</button>
         </div>
         <div class="r-chips">
@@ -151,6 +152,7 @@
                 .join("")}</div>`
             : `<p class="s-empty">${state.items.length ? "No recipes match." : "No recipes yet. Add your first one!"}</p>`
         }`;
+      if (window.unstashFocus) window.unstashFocus(root, keepName);
     }
 
     function detail() {
@@ -272,7 +274,10 @@
       if (ui.id) Object.assign(state.items.find((x) => x.id === ui.id), rec);
       else { rec.id = uid(); rec.fav = false; state.items.unshift(rec); ui.id = rec.id; }
       save();
+      const fromDetail = (window.appBack || []).length > 1;
+      if (window.dropInner) window.dropInner();
       ui.view = "detail"; ui.servings = null; ui.off = defaultOff(rec.id ? state.items.find((x) => x.id === ui.id) : rec); ui.done.clear(); ui.added = false;
+      if (!fromDetail && window.goInner) window.goInner(() => { ui.view = "list"; render(); });
       render();
     };
 
@@ -282,6 +287,7 @@
         ui.id = +card.dataset.open; ui.view = "detail";
         ui.servings = null; ui.off = defaultOff(state.items.find((x) => x.id === ui.id)); ui.done.clear(); ui.added = false; ui.sure = false;
         window.scrollTo(0, 0);
+        if (window.goInner) window.goInner(() => { ui.view = "list"; render(); });
         return render();
       }
       const tag = e.target.closest("[data-tag]");
@@ -295,13 +301,19 @@
       const act = e.target.closest("[data-act]")?.dataset.act;
       if (!act) return;
       const r = state.items.find((x) => x.id === ui.id);
-      if (act === "new") { ui.id = null; ui.draft = blank(); ui.view = "form"; }
-      else if (act === "back") { ui.view = ui.id && ui.view === "form" && r ? "detail" : "list"; ui.sure = false; }
-      else if (act === "edit") { ui.draft = JSON.parse(JSON.stringify(r)); ui.view = "form"; }
+      if (act === "new") {
+        ui.id = null; ui.draft = blank(); ui.view = "form";
+        if (window.goInner) window.goInner(() => { ui.view = "list"; ui.draft = null; render(); });
+      }
+      else if (act === "back") { if (window.goBack) return window.goBack(); ui.view = ui.id && ui.view === "form" && r ? "detail" : "list"; ui.sure = false; }
+      else if (act === "edit") {
+        ui.draft = JSON.parse(JSON.stringify(r)); ui.view = "form";
+        if (window.goInner) window.goInner(() => { ui.view = "detail"; ui.draft = null; render(); });
+      }
       else if (act === "fav") { r.fav = !r.fav; save(); }
       else if (act === "del") {
         if (!ui.sure) { ui.sure = true; setTimeout(() => { ui.sure = false; if (ui.view === "detail") render(); }, 3000); }
-        else { state.items = state.items.filter((x) => x !== r); save(); ui.view = "list"; ui.sure = false; }
+        else { state.items = state.items.filter((x) => x !== r); save(); ui.view = "list"; ui.sure = false; if (window.dropInner) window.dropInner(); }
       }
       else if (act === "sv+") ui.servings = (ui.servings || r.servings || 1) + 1;
       else if (act === "sv-") ui.servings = Math.max(1, (ui.servings || r.servings || 1) - 1);

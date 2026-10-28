@@ -19,3 +19,6 @@ window.TMDB_KEY = "";
 
 // Optional (recommended): free key from omdbapi.com/apikey.aspx. Gives IMDb titles and IMDb's own posters.
 window.OMDB_KEY = "9990f3d9";
+
+// Secret for the Google Calendar subscribe link. Same value as Edge Function secret FAHDRIK_ICS_TOKEN.
+window.FAHDRIK_ICS_TOKEN = "b2da988d219d94865acd8f3dc26a9ef0";
