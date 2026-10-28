@@ -50,9 +50,19 @@ function utcStamp() {
   return new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
 }
 
-function eventBlock(e: { id: number; title: string; time?: string; who?: string; ymd?: string; date?: number }) {
+function hmOf(t?: string) {
+  return (t || "").replace(":", "").padEnd(4, "0").slice(0, 4);
+}
+
+function compactYmd(s?: string) {
+  if (s && /^\d{4}-\d{2}-\d{2}$/.test(s)) return s.replace(/-/g, "");
+  return "";
+}
+
+function eventBlock(e: { id: number; title: string; time?: string; end?: string; endYmd?: string; who?: string; ymd?: string; date?: number }) {
   const day = ymdFromEvent(e);
   if (!day) return "";
+  const last = compactYmd(e.endYmd) && compactYmd(e.endYmd)! > day ? compactYmd(e.endYmd)! : day;
   const uid = `fahdrik-${e.id}@fahdrik`;
   const summary = icsEscape(e.title || "(no title)");
   const who = WHO[e.who || "both"] || "Both";
@@ -64,23 +74,31 @@ function eventBlock(e: { id: number; title: string; time?: string; who?: string;
     `SUMMARY:${summary}`,
     `DESCRIPTION:${desc}`,
   ];
-  const time = (e.time || "").replace(":", "");
-  if (time.length >= 4) {
-    const hm = time.padEnd(4, "0").slice(0, 4);
-    const start = `${day}T${hm}00`;
-    let eh = +hm.slice(0, 2) + 1;
-    let em = hm.slice(2, 4);
-    let ed = day;
-    if (eh >= 24) {
-      eh = 0;
-      ed = nextDay(day);
+  const time = hmOf(e.time);
+  if ((e.time || "").replace(":", "").length >= 4) {
+    const start = `${day}T${time}00`;
+    const endHm = (e.end || "").replace(":", "").length >= 4 ? hmOf(e.end) : "";
+    let ed = last;
+    let endClock = endHm;
+    if (!endClock || endClock <= time) {
+      if (endClock && endClock < time) {
+        ed = nextDay(last);
+      } else {
+        let eh = +time.slice(0, 2) + 1;
+        const em = time.slice(2, 4);
+        if (eh >= 24) {
+          eh = 0;
+          ed = nextDay(day);
+        }
+        endClock = `${String(eh).padStart(2, "0")}${em}`;
+      }
     }
-    const end = `${ed}T${String(eh).padStart(2, "0")}${em}00`;
+    const end = `${ed}T${endClock}00`;
     lines.push(`DTSTART;TZID=Europe/Oslo:${start}`);
     lines.push(`DTEND;TZID=Europe/Oslo:${end}`);
   } else {
     lines.push(`DTSTART;VALUE=DATE:${day}`);
-    lines.push(`DTEND;VALUE=DATE:${nextDay(day)}`);
+    lines.push(`DTEND;VALUE=DATE:${nextDay(last)}`);
   }
   lines.push("END:VEVENT");
   return lines.map(fold).join("\r\n");
