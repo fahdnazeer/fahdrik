@@ -93,7 +93,7 @@ h1 span {
 .cal-status { color: var(--muted); font-size: .85rem; margin-bottom: 8px; }
 .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0; border-bottom: 1px solid rgb(var(--ov) / 10%); }
 .weekdays span { text-align: center; color: var(--muted); font-size: .72rem; font-weight: 600; padding: 6px 0 8px; letter-spacing: .02em; }
-.month { display: flex; flex-direction: column; border: 1px solid rgb(var(--ov) / 10%); border-radius: 14px; overflow: hidden; background: rgb(var(--ov) / 3%); margin-bottom: 16px; }
+.month { display: flex; flex-direction: column; border: 1px solid rgb(var(--ov) / 10%); border-radius: 14px; overflow: hidden; background: rgb(var(--ov) / 3%); margin-bottom: 16px; touch-action: pan-y; }
 .cal-week {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));

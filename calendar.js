@@ -60,6 +60,8 @@
   let lastTap = { ymd: "", at: 0 };
   let selectTimer = 0;
   let ignoreBackdrop = 0;
+  let swipe = null;
+  let skipClick = false;
   const save = () => window.store.save(KEY, state);
   window.store.watchState(KEY, state);
 
@@ -296,6 +298,11 @@
       }
     }
 
+    function shiftMonth(dir) {
+      ui.month = new Date(ui.month.getFullYear(), ui.month.getMonth() + dir, 1);
+      render();
+    }
+
     root.onsubmit = (e) => {
       e.preventDefault();
       if (!e.target.closest(".cal-overlay")) return;
@@ -313,6 +320,33 @@
       ui.sheetFocus = false;
       render();
     };
+
+    root.addEventListener("click", (e) => {
+      if (!skipClick) return;
+      skipClick = false;
+      e.stopPropagation();
+    }, { capture: true, signal });
+
+    root.addEventListener("pointerdown", (e) => {
+      if (ui.editId != null) return;
+      if (!e.target.closest(".month")) return;
+      swipe = { x: e.clientX, y: e.clientY, id: e.pointerId };
+    }, { signal });
+
+    root.addEventListener("pointerup", (e) => {
+      if (!swipe || e.pointerId !== swipe.id) return;
+      const dx = e.clientX - swipe.x;
+      const dy = e.clientY - swipe.y;
+      swipe = null;
+      if (ui.editId != null) return;
+      if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.15) return;
+      skipClick = true;
+      lastTap = { ymd: "", at: 0 };
+      clearTimeout(selectTimer);
+      shiftMonth(dx < 0 ? 1 : -1);
+    }, { signal });
+
+    root.addEventListener("pointercancel", () => { swipe = null; }, { signal });
 
     root.onclick = (e) => {
       if (e.target.closest(".cal-sheet")) {
@@ -342,10 +376,7 @@
       }
       if (ui.editId != null) return;
       const nav = e.target.closest("[data-nav]");
-      if (nav) {
-        ui.month = new Date(ui.month.getFullYear(), ui.month.getMonth() + +nav.dataset.nav, 1);
-        return render();
-      }
+      if (nav) return shiftMonth(+nav.dataset.nav);
       const chip = e.target.closest("[data-chip]");
       if (chip) {
         lastTap = { ymd: "", at: 0 };
