@@ -340,8 +340,7 @@ h1 span {
 .iconnav button:hover { background: rgb(var(--ov) / 8%); }
 .iconnav button.on { background: var(--sheet); overflow: visible; }
 .iconnav button.on:hover { background: var(--sheet); }
-.iconnav button.on::before,
-.iconnav button.on::after {
+.iconnav button.on::before {
   content: "";
   position: absolute;
   pointer-events: none;
@@ -355,12 +354,14 @@ h1 span {
     radial-gradient(circle at 0 0, transparent 12px, var(--sheet) 12.5px) left / 12px 12px no-repeat,
     radial-gradient(circle at 100% 0, transparent 12px, var(--sheet) 12.5px) right / 12px 12px no-repeat;
 }
-.iconnav button.on::after {
-  left: -12px;
-  right: -12px;
+.tab-stroke {
+  position: fixed;
+  left: 0;
   top: 0;
-  bottom: 0;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 40' fill='none' preserveAspectRatio='none'%3E%3Cpath d='M0 39.25 A12 12 0 0 0 12 27.25 V16 A15 15 0 0 1 28 1 H44 A15 15 0 0 1 60 16 V27.25 A12 12 0 0 0 72 39.25' stroke='%23f29cb7' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  pointer-events: none;
+  z-index: 20;
+  overflow: visible;
+  fill: none;
 }
 body.in-section .topbar {
   background: transparent;
@@ -377,44 +378,12 @@ body.in-section .brand {
   flex-shrink: 0;
 }
 body.in-section .detail {
-  position: relative;
   background: var(--sheet);
   border-radius: 22px 22px 0 0;
   margin: 0;
   padding: 18px 16px calc(48px + env(safe-area-inset-bottom));
   min-height: calc(100dvh - 56px);
   width: 100%;
-}
-body.in-section .detail::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 22px;
-  pointer-events: none;
-  z-index: 3;
-  border-radius: 22px 22px 0 0;
-  border: 1.5px solid #f29cb7;
-  border-bottom: 0;
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent 0,
-    #000 calc(var(--tab-l, 40%) - 12px),
-    transparent calc(var(--tab-l, 40%) - 12px),
-    transparent calc(var(--tab-l, 40%) + var(--tab-w, 48px) + 12px),
-    #000 calc(var(--tab-l, 40%) + var(--tab-w, 48px) + 12px),
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    to right,
-    transparent 0,
-    #000 calc(var(--tab-l, 40%) - 12px),
-    transparent calc(var(--tab-l, 40%) - 12px),
-    transparent calc(var(--tab-l, 40%) + var(--tab-w, 48px) + 12px),
-    #000 calc(var(--tab-l, 40%) + var(--tab-w, 48px) + 12px),
-    transparent 100%
-  );
 }
 @media (min-width: 700px) { .brand span { display: inline; } }
 @media (max-width: 420px) {

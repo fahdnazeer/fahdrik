@@ -90,20 +90,56 @@ function home() {
   topbar.hidden = true;
   detail.hidden = true;
   document.body.classList.remove("in-section");
-  document.body.style.removeProperty("--tab-l");
-  document.body.style.removeProperty("--tab-w");
+  const stroke = document.getElementById("tab-stroke");
+  if (stroke) { stroke.hidden = true; stroke.innerHTML = ""; }
 }
 function syncTabStroke() {
   requestAnimationFrame(() => {
+    const svg = document.getElementById("tab-stroke");
     const btn = iconnav.querySelector("button.on");
-    if (!btn || !document.body.classList.contains("in-section")) return;
-    const br = btn.getBoundingClientRect();
-    const dr = detail.getBoundingClientRect();
-    document.body.style.setProperty("--tab-l", br.left - dr.left + "px");
-    document.body.style.setProperty("--tab-w", br.width + "px");
+    if (!svg) return;
+    if (!btn || !document.body.classList.contains("in-section") || detail.hidden) {
+      svg.hidden = true;
+      svg.innerHTML = "";
+      return;
+    }
+    const b = btn.getBoundingClientRect();
+    const s = detail.getBoundingClientRect();
+    const pad = 12, tr = 16, sr = 22;
+    const join = b.bottom;
+    const top = b.top - 3;
+    const left = s.left;
+    const width = Math.max(1, s.width);
+    const height = Math.max(1, join - top + 6);
+    svg.hidden = false;
+    svg.style.transform = `translate(${left}px, ${top}px)`;
+    svg.setAttribute("width", width);
+    svg.setAttribute("height", height);
+    svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+    const x = (n) => n - left;
+    const y = (n) => n - top;
+    const yJ = y(join), yT = y(b.top);
+    const xL = x(b.left), xR = x(b.right);
+    const x0 = x(s.left), x1 = x(s.right);
+    const d = [
+      `M ${x0 + sr} ${yJ}`,
+      `H ${xL - pad}`,
+      `A ${pad} ${pad} 0 0 0 ${xL} ${yJ - pad}`,
+      `V ${yT + tr}`,
+      `A ${tr} ${tr} 0 0 1 ${xL + tr} ${yT}`,
+      `H ${xR - tr}`,
+      `A ${tr} ${tr} 0 0 1 ${xR} ${yT + tr}`,
+      `V ${yJ - pad}`,
+      `A ${pad} ${pad} 0 0 0 ${xR + pad} ${yJ}`,
+      `H ${x1 - sr}`,
+    ].join(" ");
+    const tl = Math.max(0.02, (xL - pad) / width);
+    const trp = Math.min(0.98, (xR + pad) / width);
+    svg.innerHTML = `<defs><linearGradient id="tabStrokeFade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f29cb7" stop-opacity="0"/><stop offset="${tl}" stop-color="#f29cb7" stop-opacity="1"/><stop offset="${trp}" stop-color="#f29cb7" stop-opacity="1"/><stop offset="1" stop-color="#f29cb7" stop-opacity="0"/></linearGradient></defs><path d="${d}" fill="none" stroke="url(#tabStrokeFade)" stroke-width="1.5" stroke-linejoin="round"/>`;
   });
 }
 window.addEventListener("resize", syncTabStroke);
+window.addEventListener("scroll", syncTabStroke, { passive: true });
 document.getElementById("brand").onclick = (e) => {
   e.preventDefault();
   if (location.hash) history.pushState(null, "", location.pathname);
@@ -136,5 +172,5 @@ document.addEventListener("pointerdown", (e) => {
   }
 }, true);
 
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=113", { updateViaCache: "none" }).then((r) => r.update());
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=114", { updateViaCache: "none" }).then((r) => r.update());
 
