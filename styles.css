@@ -458,9 +458,6 @@ button.who:active { transform: scale(.94); }
 .s-add { display: flex; gap: 8px; margin-bottom: 10px; }
 .s-add input { flex: 1; min-width: 0; height: 34px; padding: 6px 12px; background: rgb(var(--ov) / 7%); color: var(--text); border: 1px solid rgb(var(--ov) / 13%); border-radius: 10px; font: inherit; }
 .s-add button { height: 34px; padding: 0 16px; border: 0; border-radius: 10px; background: var(--secondary); color: var(--ink); font-weight: 700; font-size: .9rem; cursor: pointer; }
-.s-quick { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 12px; padding-bottom: 2px; }
-.s-quick button { flex: none; background: rgb(var(--ov) / 4%); color: var(--muted); border: 1px dashed rgb(var(--ov) / 18%); border-radius: 999px; padding: 4px 11px; font: inherit; font-size: .82rem; cursor: pointer; }
-.s-quick button:hover { color: var(--text); border-color: #fbbf24; }
 .s-progress { height: 5px; border-radius: 99px; background: rgb(var(--ov) / 8%); overflow: hidden; margin-top: 4px; }
 .s-progress div { height: 100%; background: var(--success); transition: width .3s; }
 .s-count { color: var(--muted); font-size: .75rem; margin: 4px 0 6px; }

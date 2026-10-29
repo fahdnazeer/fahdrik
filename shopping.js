@@ -1,4 +1,4 @@
-// Shopping section: multiple lists, aisle categories, quantities, quick-add, share.
+// Shopping section: multiple lists, aisle categories, quantities, share.
 (function () {
   const KEY = "fahdrik.shopping";
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -141,13 +141,6 @@
           <button class="del" data-act="del" aria-label="Delete">✕</button>
         </li>`;
 
-      // Quick-add suggestions: most used past items not currently on the list
-      const onList = new Set(open.map((i) => i.text.toLowerCase()));
-      const suggestions = !g ? [] : Object.entries(list.history)
-        .filter(([n]) => !onList.has(n.toLowerCase()))
-        .sort((a, b) => b[1].count - a[1].count)
-        .slice(0, 10);
-
       root.innerHTML = `
         <div class="s-tabs">
           ${state.lists
@@ -161,14 +154,6 @@
           <button>Add</button>
           <div class="s-suggest" hidden></div>
         </form>
-
-        ${
-          suggestions.length
-            ? `<div class="s-quick">${suggestions
-                .map(([n, h]) => `<button data-quick="${esc(n)}">${CATS[h.cat].emoji} ${esc(n)}</button>`)
-                .join("")}</div>`
-            : ""
-        }
 
         ${total ? `<div class="s-progress"><div style="width:${(done.length / total) * 100}%"></div></div><p class="s-count">${done.length} of ${total} in the cart</p>` : ""}
 
@@ -257,7 +242,6 @@
       if (!b) return;
       const list = cur();
       if (b.dataset.list) { if (+b.dataset.list === state.current) return; state.current = +b.dataset.list; save(); return render(); }
-      if (b.dataset.quick) { addItem(b.dataset.quick); return render(); }
       const li = b.closest("li.s-item");
       const item = li && list.items.find((i) => i.id === +li.dataset.id);
       const act = b.dataset.act;
