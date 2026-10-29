@@ -451,7 +451,7 @@ button.who:active { transform: scale(.94); }
 
 /* Shopping */
 .detail:has(.s-tabs) { text-align: left; }
-.s-tabs { display: flex; gap: 8px; overflow-x: auto; margin: 16px 0 12px; padding-bottom: 2px; }
+.s-tabs { display: flex; gap: 8px; overflow-x: auto; margin: 16px 0 12px; padding-bottom: 12px; }
 .s-tab { flex: none; background: rgb(var(--ov) / 6%); color: var(--muted); border: 1px solid rgb(var(--ov) / 12%); border-radius: 999px; padding: 6px 14px; font: inherit; cursor: pointer; }
 .s-tab.on { background: #fbbf2433; color: var(--text); border-color: #fbbf24; }
 .s-tab.new { padding: 6px 12px; }
