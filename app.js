@@ -91,7 +91,7 @@ function home() {
   detail.hidden = true;
   document.body.classList.remove("in-section");
   const stroke = document.getElementById("tab-stroke");
-  if (stroke) { stroke.hidden = true; stroke.innerHTML = ""; }
+  if (stroke) { stroke.setAttribute("hidden", ""); stroke.innerHTML = ""; }
 }
 function syncTabStroke() {
   requestAnimationFrame(() => {
@@ -99,7 +99,7 @@ function syncTabStroke() {
     const btn = iconnav.querySelector("button.on");
     if (!svg) return;
     if (!btn || !document.body.classList.contains("in-section") || detail.hidden) {
-      svg.hidden = true;
+      svg.setAttribute("hidden", "");
       svg.innerHTML = "";
       return;
     }
@@ -111,7 +111,7 @@ function syncTabStroke() {
     const left = s.left;
     const width = Math.max(1, s.width);
     const height = Math.max(1, join - top + 6);
-    svg.hidden = false;
+    svg.removeAttribute("hidden");
     svg.style.transform = `translate(${left}px, ${top}px)`;
     svg.setAttribute("width", width);
     svg.setAttribute("height", height);
@@ -172,5 +172,5 @@ document.addEventListener("pointerdown", (e) => {
   }
 }, true);
 
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=114", { updateViaCache: "none" }).then((r) => r.update());
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=115", { updateViaCache: "none" }).then((r) => r.update());
 
