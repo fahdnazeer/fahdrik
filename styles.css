@@ -62,7 +62,9 @@ h1 span {
   text-align: left;
   font: inherit;
   cursor: pointer;
-  background: linear-gradient(145deg, color-mix(in srgb, var(--c) 55%, transparent), rgb(var(--ov) / 6%));
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--c) 34%, transparent), transparent 70%),
+    color-mix(in srgb, var(--sheet) 82%, #1a191b);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   transition: transform .18s ease, box-shadow .18s ease, border-color .18s;
