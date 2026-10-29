@@ -241,35 +241,6 @@ function groupCats(rows, sign) {
   }
   return Object.entries(m).sort((a, b) => b[1] - a[1]);
 }
-function netWorthAt(date) {
-  return listAccounts().filter((a) => !a.hidden).reduce((s, a) => {
-    const sum = tx().filter((t) => t.account === a.name && t.date <= date).reduce((x, t) => x + t.amount, 0);
-    return s + a.opening + sum;
-  }, 0);
-}
-function chartSvg(points) {
-  if (points.length < 2) return "";
-  const W = 1000, H = 132, pL = 12, pR = 16, pT = 10, pB = 24;
-  const vals = points.map((p) => p.v);
-  const min = Math.min(...vals), max = Math.max(...vals), span = Math.max(1, max - min);
-  const xs = points.map((_, i) => pL + i * (W - pL - pR) / (points.length - 1));
-  const ys = vals.map((v) => pT + (1 - (v - min) / span) * (H - pT - pB));
-  let d = "M" + xs[0] + "," + ys[0];
-  for (let i = 1; i < xs.length; i++) d += " L" + xs[i] + "," + ys[i];
-  const area = d + " L" + xs[xs.length - 1] + "," + (H - pB) + " L" + xs[0] + "," + (H - pB) + " Z";
-  const last = points.length - 1;
-  const labels = points.map((p, i) => {
-    if (points.length > 10 && i !== 0 && i !== last && i % 2) return "";
-    const lab = new Date(p.m + "-01T00:00").toLocaleDateString("en-GB", { month: "short" });
-    return '<text x="' + xs[i] + '" y="' + (H - 6) + '" text-anchor="middle">' + lab + "</text>";
-  }).join("");
-  return '<svg viewBox="0 0 ' + W + " " + H + '" preserveAspectRatio="xMidYMid meet">'
-    + '<path d="' + area + '" fill="#4ade80" fill-opacity=".15"/>'
-    + '<path d="' + d + '" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linejoin="round"/>'
-    + '<circle cx="' + xs[last] + '" cy="' + ys[last] + '" r="4.5" fill="#4ade80"/>'
-    + labels + "</svg>";
-}
-
 function fmtSaved(ts) {
   if (!ts) return "";
   return new Date(ts).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
@@ -299,14 +270,6 @@ window.renderBudget = function (root) {
     sub += nxt <= 0 ? " · payday today" : nxt === 1 ? " · payday tomorrow" : " · " + nxt + " days until payday";
   }
   const vis = listAccounts().filter((a) => !a.hidden);
-  const net = vis.reduce((sum, a) => sum + a.balance, 0);
-  const cash = vis.filter((a) => a.type !== "credit").reduce((sum, a) => sum + a.balance, 0);
-  const credit = vis.filter((a) => a.type === "credit").reduce((sum, a) => sum + a.balance, 0);
-  const prevM = bdShift(month, -1);
-  const prevNet = netWorthAt(monthBounds(prevM)[1]);
-  const delta = net - prevNet;
-  const months = [...new Set(tx().map((t) => t.date.slice(0, 7)))].sort();
-  const chart = chartSvg(months.filter((m) => m <= String(month).slice(0, 7)).map((m) => ({ m, v: netWorthAt(monthBounds(m)[1]) })));
   const rows = tx().filter((t) => t.date >= from && t.date <= to && (isCf(t) || isReimburseCat(t.category)));
   const inc = sumIncome(rows);
   const exp = sumExpense(rows);
@@ -368,20 +331,6 @@ window.renderBudget = function (root) {
       <button type="button" class="tab${cycleOn}" data-period="cycle">Pay cycle</button>
       <button type="button" class="tab${monthOn}" data-period="month">Calendar</button>
     </div>
-    <section class="hero card-block">
-      <div class="hero-top">
-        <div>
-          <span>Net worth</span>
-          <b class="${net >= 0 ? "pos" : "neg"}">${money(net)}</b>
-          <small class="${s.tx.length ? (delta >= 0 ? "pos" : "neg") : "muted"}">${s.tx.length ? ((delta >= 0 ? "▲ " : "▼ ") + money(Math.abs(delta)) + " vs " + new Date((/^\d{4}-\d{2}-\d{2}$/.test(prevM) ? prevM : prevM + "-01") + "T00:00").toLocaleDateString("en-GB", { month: "short" })) : "Waiting for Peach data"}</small>
-        </div>
-        <div class="hero-split">
-          <div><span>Cash &amp; savings</span><b class="${cash >= 0 ? "pos" : "neg"}">${money(cash)}</b></div>
-          <div><span>Credit cards</span><b class="${credit < 0 ? "neg" : ""}">${money(credit)}</b></div>
-        </div>
-      </div>
-      <div class="bd-chart">${chart}</div>
-    </section>
     <section class="summary">
       <div class="sum-btn"><span>${periodMode() === "cycle" ? "This cycle in" : "This month in"}</span><b class="pos">${money(inc)}</b></div>
       <div class="sum-btn"><span>${periodMode() === "cycle" ? "This cycle out" : "This month out"}</span><b>${money(exp)}</b></div>
