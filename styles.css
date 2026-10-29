@@ -497,7 +497,7 @@ button.who:active { transform: scale(.94); }
 .r-search { flex: 1; min-width: 0; height: 34px; padding: 6px 12px; background: rgb(var(--ov) / 7%); color: var(--text); border: 1px solid rgb(var(--ov) / 13%); border-radius: 10px; font: inherit; }
 .r-new, .r-save, .r-shop { border: 0; border-radius: 10px; background: var(--secondary); color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; }
 .r-new { height: 34px; padding: 0 14px; font-size: .9rem; }
-.r-chips { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 14px; padding-bottom: 2px; }
+.r-chips { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 14px; padding-bottom: 12px; }
 .r-chips button { flex: none; background: rgb(var(--ov) / 6%); color: var(--muted); border: 1px solid rgb(var(--ov) / 12%); border-radius: 999px; padding: 4px 12px; font: inherit; font-size: .85rem; cursor: pointer; }
 .r-chips button.on { background: #fb923c33; color: var(--text); border-color: #fb923c; }
 .r-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
