@@ -23,3 +23,29 @@ do $$ begin
   alter publication supabase_realtime add table public.fahdrik;
 exception when duplicate_object then null;
 end $$;
+
+-- Peach publishes the Samboer snapshot with the same token as the calendar ICS feed.
+create or replace function public.fahdrik_push_samboer(tok text, payload jsonb)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if tok is null or tok <> 'b2da988d219d94865acd8f3dc26a9ef0' then
+    raise exception 'unauthorized';
+  end if;
+  if payload is null or jsonb_typeof(payload) <> 'object' then
+    raise exception 'invalid payload';
+  end if;
+  insert into public.fahdrik (id, data, updated_at, updated_by)
+  values ('fahdrik.samboer', payload, now(), 'peach')
+  on conflict (id) do update
+    set data = excluded.data,
+        updated_at = excluded.updated_at,
+        updated_by = excluded.updated_by;
+end;
+$$;
+
+revoke all on function public.fahdrik_push_samboer(text, jsonb) from public;
+grant execute on function public.fahdrik_push_samboer(text, jsonb) to anon, authenticated;
