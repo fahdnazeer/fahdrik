@@ -28,7 +28,7 @@ body {
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 #app { max-width: 1000px; margin: 0 auto; padding: 32px 20px 48px; }
-body.in-section #app { padding-top: 0; padding-bottom: 16px; }
+body.in-section #app { padding: 0; max-width: none; }
 .top { margin-bottom: 28px; }
 h1 { font-size: clamp(2rem, 6vw, 3.2rem); letter-spacing: -.02em; }
 h1 span {
@@ -359,16 +359,18 @@ h1 span {
 body.in-section .topbar {
   background: transparent;
   border-bottom: 0;
-  padding-bottom: 0;
+  max-width: none;
+  padding: 8px 8px 0;
   align-items: flex-end;
   overflow: visible;
 }
 body.in-section .detail {
   background: var(--sheet);
-  border-radius: 22px;
-  margin-top: 0;
-  padding: 18px 16px 48px;
-  min-height: calc(100dvh - 88px);
+  border-radius: 22px 22px 0 0;
+  margin: 0;
+  padding: 18px 16px calc(48px + env(safe-area-inset-bottom));
+  min-height: calc(100dvh - 56px);
+  width: 100%;
 }
 @media (min-width: 700px) { .brand span { display: inline; } }
 @media (max-width: 420px) { .topbar { padding: 8px 10px 0; gap: 6px; } .iconnav button { height: 38px; font-size: 1.05rem; } .brand img { width: 26px; height: 26px; } }
