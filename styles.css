@@ -141,8 +141,8 @@ h1 span {
 .cal-week {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  grid-template-rows: 22px repeat(var(--lanes, 1), 18px) 14px;
-  min-height: 102px;
+  grid-template-rows: 28px repeat(var(--lanes, 0), 16px) auto;
+  min-height: 0;
   border-bottom: 1px solid rgb(var(--ov) / 8%);
 }
 .cal-week:last-child { border-bottom: 0; }

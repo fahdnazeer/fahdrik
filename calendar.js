@@ -137,7 +137,7 @@
       if (p.lane < MAX_LANES) show.push(p);
       else for (let c = p.c0; c < p.c0 + p.span; c++) extra[c]++;
     }
-    return { show, extra, lanes: Math.min(MAX_LANES, occ.length) || 1 };
+    return { show, extra, lanes: Math.min(MAX_LANES, occ.length) };
   }
 
   function chipLabel(p, week) {
@@ -380,6 +380,7 @@
       ui.draftTime = "";
       ui.draftEnd = "";
       parkTrack();
+      fitMonthBoard();
     }
 
     function openSheet(id, mode) {
@@ -439,6 +440,15 @@
       if (!t || !w) return;
       t.style.transition = "none";
       t.style.transform = `translateX(${-w}px)`;
+    }
+    function fitMonthBoard() {
+      const board = root.querySelector(".cal-board:not(.cal-board-week)");
+      if (!board) return;
+      const mid = board.querySelectorAll(".cal-pane")[1];
+      if (!mid) return;
+      board.style.height = "";
+      const h = mid.offsetHeight;
+      if (h) board.style.height = h + "px";
     }
     function animateMonth(dir) {
       if (sliding) return;
