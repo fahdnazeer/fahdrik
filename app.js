@@ -1,14 +1,19 @@
 const sections = [
-  { id: "calendar", name: "Calendar", emoji: "📅", color: "#6b4584", desc: "Plans & dates" },
-  { id: "todo", name: "To-do", emoji: "✅", color: "#c4a05c", desc: "Things to get done" },
-  { id: "shopping", name: "Shopping", emoji: "🛒", color: "#c9899c", desc: "Groceries & more" },
-  { id: "recipes", name: "Recipes", emoji: "🍳", color: "#d489a4", desc: "What's for dinner" },
-  { id: "budget", name: "Budget", emoji: "💰", color: "#c9a45e", desc: "Money together" },
-  { id: "watch", name: "Watch list", emoji: "🎬", color: "#9a6aad", desc: "Movies & shows" },
-  { id: "reading", name: "Reading list", emoji: "📚", color: "#8b68b0", desc: "Books to read" },
-  { id: "wish", name: "Wish list", emoji: "🎁", color: "#d07a96", desc: "Things we want" },
-  { id: "bucket", name: "Bucket list", emoji: "🌍", color: "#5c4a82", desc: "Dreams & trips" },
+  { id: "calendar", name: "Calendar", emoji: "📅", color: "#80b0e8", desc: "Plans & dates" },
+  { id: "todo", name: "To-do", emoji: "✅", color: "#ffc0c0", desc: "Things to get done" },
+  { id: "shopping", name: "Shopping", emoji: "🛒", color: "#008471", desc: "Groceries & more" },
+  { id: "recipes", name: "Recipes", emoji: "🍳", color: "#d1caea", desc: "What's for dinner" },
+  { id: "budget", name: "Budget", emoji: "💰", color: "#d6d35f", desc: "Money together" },
+  { id: "watch", name: "Watch list", emoji: "🎬", color: "#c45f3f", desc: "Movies & shows" },
+  { id: "reading", name: "Reading list", emoji: "📚", color: "#f5d243", desc: "Books to read" },
+  { id: "wish", name: "Wish list", emoji: "🎁", color: "#898e46", desc: "Things we want" },
+  { id: "bucket", name: "Bucket list", emoji: "🌍", color: "#f29cc3", desc: "Dreams & trips" },
 ];
+const fgOn = (hex) => {
+  const n = parseInt(hex.slice(1), 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b < 145 ? "#f4f0ea" : "#111111";
+};
 
 const grid = document.getElementById("grid");
 const detail = document.getElementById("detail");
@@ -18,8 +23,9 @@ sections.forEach((s) => {
   const b = document.createElement("button");
   b.className = "tile";
   b.style.setProperty("--c", s.color);
-  b.innerHTML = `<span class="emoji">${s.emoji}</span>
-    <span><span class="name">${s.name}</span><br><span class="desc">${s.desc}</span></span>`;
+  b.style.setProperty("--fg", fgOn(s.color));
+  b.innerHTML = `<span class="name">${s.name}</span><span class="desc">${s.desc}</span>
+    <span class="emoji" aria-hidden="true">${s.emoji}</span>`;
   b.onclick = () => show(s.id);
   grid.appendChild(b);
 });
@@ -77,7 +83,6 @@ function show(id) {
   document.body.classList.add("in-section");
   iconnav.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.id === id));
   detail.hidden = false;
-  syncTabStroke();
   if (!skipHistory) {
     if (fromHome) history.pushState({ s: id }, "", "#" + id);
     else history.replaceState({ s: id }, "", "#" + id);
@@ -90,81 +95,7 @@ function home() {
   topbar.hidden = true;
   detail.hidden = true;
   document.body.classList.remove("in-section");
-  const stroke = document.getElementById("tab-stroke");
-  if (stroke) { stroke.setAttribute("hidden", ""); stroke.innerHTML = ""; }
 }
-function syncTabStroke() {
-  requestAnimationFrame(() => {
-    const svg = document.getElementById("tab-stroke");
-    const btn = iconnav.querySelector("button.on");
-    if (!svg) return;
-    if (!btn || !document.body.classList.contains("in-section") || detail.hidden) {
-      svg.setAttribute("hidden", "");
-      svg.innerHTML = "";
-      return;
-    }
-    const b = btn.getBoundingClientRect();
-    const s = detail.getBoundingClientRect();
-    const pad = 12, tr = 16, sr = 22, fade = 100;
-    const join = b.bottom;
-    const top = b.top - 3;
-    const left = s.left;
-    const width = Math.max(1, s.width);
-    const height = Math.max(1, join - top + sr + 8);
-    svg.removeAttribute("hidden");
-    svg.style.transform = `translate(${left}px, ${top}px)`;
-    svg.setAttribute("width", width);
-    svg.setAttribute("height", height);
-    svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
-    const x = (n) => n - left;
-    const y = (n) => n - top;
-    const yJ = y(join), yT = y(b.top);
-    const xL = x(b.left), xR = x(b.right);
-    const x0 = x(s.left) + 0.75, x1 = x(s.right) - 0.75;
-    const flushL = xL - x0 < 20;
-    const flushR = x1 - xR < 20;
-    const d = [];
-    if (flushL) {
-      const r = Math.max(8, Math.min(sr, xL - x0));
-      d.push(`M ${x0} ${yJ + r}`, `A ${r} ${r} 0 0 1 ${xL} ${yJ}`, `V ${yT + tr}`);
-    } else {
-      const leftEnd = Math.max(x0 + 8, xL - pad - fade);
-      d.push(`M ${leftEnd} ${yJ}`);
-      if (xL - pad > leftEnd) d.push(`H ${xL - pad}`);
-      d.push(`A ${pad} ${pad} 0 0 0 ${xL} ${yJ - pad}`, `V ${yT + tr}`);
-    }
-    d.push(
-      `A ${tr} ${tr} 0 0 1 ${xL + tr} ${yT}`,
-      `H ${xR - tr}`,
-      `A ${tr} ${tr} 0 0 1 ${xR} ${yT + tr}`
-    );
-    if (flushR) {
-      const r = Math.max(8, Math.min(sr, x1 - xR));
-      d.push(`V ${yJ}`, `A ${r} ${r} 0 0 1 ${x1} ${yJ + r}`);
-    } else {
-      d.push(`V ${yJ - pad}`, `A ${pad} ${pad} 0 0 0 ${xR + pad} ${yJ}`);
-      d.push(`H ${Math.min(x1 - 8, xR + pad + fade)}`);
-    }
-    const stops = [];
-    const add = (off, op) => {
-      off = Math.min(1, Math.max(0, off));
-      const last = stops[stops.length - 1];
-      if (last && off - last.off < 0.001) { last.op = op; return; }
-      if (last && off < last.off) return;
-      stops.push({ off, op });
-    };
-    add(0, flushL ? 1 : 0);
-    if (!flushL) add((xL - pad - fade) / width, 0);
-    add((xL - pad) / width, 1);
-    add((xR + pad) / width, 1);
-    if (!flushR) { add((xR + pad + fade) / width, 0); add(1, 0); }
-    else add(1, 1);
-    const stopXml = stops.map((st) => `<stop offset="${st.off}" stop-color="#f29cb7" stop-opacity="${st.op}"/>`).join("");
-    svg.innerHTML = `<defs><linearGradient id="tabStrokeFade" x1="0" y1="0" x2="1" y2="0">${stopXml}</linearGradient></defs><path d="${d.join(" ")}" fill="none" stroke="url(#tabStrokeFade)" stroke-width="1.5" stroke-linejoin="round"/>`;
-  });
-}
-window.addEventListener("resize", syncTabStroke);
-window.addEventListener("scroll", syncTabStroke, { passive: true });
 document.getElementById("brand").onclick = (e) => {
   e.preventDefault();
   if (location.hash) history.pushState(null, "", location.pathname);
@@ -197,5 +128,32 @@ document.addEventListener("pointerdown", (e) => {
   }
 }, true);
 
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=121", { updateViaCache: "none" }).then((r) => r.update());
+const THEME_KEY = "fahdrik.theme";
+const applyTheme = (mode) => {
+  document.documentElement.classList.toggle("light", mode === "light");
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.content = mode === "light" ? "#e6e1d8" : "#2c2c2c";
+  const bar = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+  if (bar) bar.content = mode === "light" ? "default" : "black-translucent";
+  document.querySelectorAll("#theme-seg [data-theme]").forEach((b) => {
+    b.classList.toggle("on", b.dataset.theme === mode);
+  });
+};
+applyTheme(localStorage.getItem(THEME_KEY) === "light" ? "light" : "dark");
+
+const settingsFab = document.getElementById("settings-fab");
+const settingsOverlay = document.getElementById("settings-overlay");
+const openSettings = () => { settingsOverlay.hidden = false; };
+const closeSettings = () => { settingsOverlay.hidden = true; };
+settingsFab.onclick = openSettings;
+document.getElementById("settings-close").onclick = closeSettings;
+settingsOverlay.onclick = (e) => { if (e.target === settingsOverlay) closeSettings(); };
+document.getElementById("theme-seg").onclick = (e) => {
+  const b = e.target.closest("[data-theme]");
+  if (!b) return;
+  localStorage.setItem(THEME_KEY, b.dataset.theme);
+  applyTheme(b.dataset.theme);
+};
+
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=182", { updateViaCache: "none" }).then((r) => r.update());
 

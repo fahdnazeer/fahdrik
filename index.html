@@ -3,26 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#222023" />
+  <meta name="theme-color" content="#2c2c2c" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="icon.svg" />
   <title>Fahdrik</title>
-  <link rel="stylesheet" href="styles.css?v=121" />
+  <script>try { if (localStorage.getItem("fahdrik.theme") === "light") { document.documentElement.classList.add("light"); var m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = "#e6e1d8"; } } catch (e) {}</script>
+  <link rel="stylesheet" href="styles.css?v=182" />
 </head>
 <body>
   <nav class="topbar" id="topbar" hidden>
     <a class="brand" id="brand" href="./" aria-label="Fahdrik home"><img src="icon.svg" alt="" /><span>Fahdrik</span></a>
     <div class="iconnav" id="iconnav"></div>
   </nav>
-  <svg class="tab-stroke" id="tab-stroke" aria-hidden="true" hidden></svg>
   <main id="app">
     <header class="top">
       <h1><span>Fahd &amp; Eirik</span></h1>
       <p class="sub">Everything for the two of us, in one place.</p>
-      <div class="syncbar" data-syncbar hidden></div>
     </header>
 
     <nav class="grid" id="grid" aria-label="Sections"></nav>
@@ -32,19 +31,38 @@
       <div id="detail-body"><p>Coming soon — we'll build this one next.</p></div>
     </section>
   </main>
+  <button type="button" class="settings-fab" id="settings-fab" aria-label="Settings">
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" />
+    </svg>
+  </button>
+  <div class="settings-overlay" id="settings-overlay" hidden>
+    <div class="cal-sheet settings-sheet" role="dialog" aria-labelledby="settings-title">
+      <button type="button" class="cal-sheet-x" id="settings-close" aria-label="Close">✕</button>
+      <h3 id="settings-title">Settings</h3>
+      <p class="set-label">Appearance</p>
+      <div class="set-seg" id="theme-seg">
+        <button type="button" data-theme="dark">Dark</button>
+        <button type="button" data-theme="light">Light</button>
+      </div>
+      <p class="set-label">Sync</p>
+      <div class="set-sync" data-syncbar hidden></div>
+    </div>
+  </div>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="config.js?v=121"></script>
-  <script src="cloud.js?v=121"></script>
-  <script src="calendar.js?v=121"></script>
-  <script src="todo.js?v=121"></script>
-  <script src="shopping.js?v=121"></script>
-  <script src="recipes.js?v=121"></script>
-  <script src="watch.js?v=121"></script>
-  <script src="reading.js?v=121"></script>
-  <script src="wishes.js?v=121"></script>
-  <script src="bucket.js?v=121"></script>
-  <script src="budget.js?v=121"></script>
-  <script src="app.js?v=121"></script>
+  <script src="config.js?v=182"></script>
+  <script src="cloud.js?v=182"></script>
+  <script src="calendar.js?v=182"></script>
+  <script src="todo.js?v=182"></script>
+  <script src="shopping.js?v=182"></script>
+  <script src="recipes.js?v=182"></script>
+  <script src="watch.js?v=182"></script>
+  <script src="reading.js?v=182"></script>
+  <script src="wishes.js?v=182"></script>
+  <script src="bucket.js?v=182"></script>
+  <script src="budget.js?v=182"></script>
+  <script src="app.js?v=182"></script>
 </body>
 </html>

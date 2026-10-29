@@ -15,11 +15,10 @@
   };
   window.store.watchState(KEY, state);
 
-  const hue = (s) => [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 360, 7);
   const poster = (it) =>
     it.poster
       ? `<img src="${esc(it.poster)}" alt="" loading="lazy" onerror="this.style.display='none'" />`
-      : `<div class="w-ph" style="--h:${hue(it.title)}"><span>${TYPE[it.type]}</span><small>${esc(it.title)}</small></div>`;
+      : `<div class="w-ph" style="--c:${window.tint(it.title)}"><span>${TYPE[it.type]}</span><small>${esc(it.title)}</small></div>`;
 
   const avg = (it) => {
     const v = [it.rating?.me, it.rating?.partner].filter((x) => x > 0);

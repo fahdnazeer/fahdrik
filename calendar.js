@@ -2,7 +2,7 @@
 (function () {
   const KEY = "fahdrik.calendar";
   const WHO = { me: "Fahd", partner: "Eirik", both: "Both" };
-  const COLOR = { me: "#f29cb7", partner: "#ddaaff", both: "#fbcf4f" };
+  const COLOR = { me: "#f29cb7", partner: "#d6d35f", both: "#fbcf4f" };
   const MAX_LANES = 3;
   const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const uid = () => Date.now() + Math.floor(Math.random() * 1000);

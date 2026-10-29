@@ -20,7 +20,6 @@
   window.store.watchState(KEY, state);
   const curList = () => state.lists.find((l) => l.id === state.current) || state.lists[0];
 
-  const hue = (s) => [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 360, 7);
   const domain = (url) => {
     try { return new URL(/^https?:\/\//i.test(url) ? url : "https://" + url).hostname.replace(/^www\./, ""); } catch (_) { return ""; }
   };
@@ -37,7 +36,7 @@
   const picture = (it) =>
     it.img
       ? `<img src="${esc(it.img)}" alt="" loading="lazy" onerror="this.style.display='none'" />`
-      : `<div class="wi-ph" style="--h:${hue(it.title)}"><span>🎁</span>${it.link ? `<small>${esc(domain(it.link))}</small>` : ""}</div>`;
+      : `<div class="wi-ph" style="--c:${window.tint(it.title)}"><span>🎁</span>${it.link ? `<small>${esc(domain(it.link))}</small>` : ""}</div>`;
 
   function resizeImage(file, max = 700) {
     return new Promise((resolve, reject) => {

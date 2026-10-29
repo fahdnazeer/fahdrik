@@ -59,7 +59,6 @@
   };
   window.store.watchState(KEY, state);
 
-  const hue = (s) => [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 360, 7);
   const money = (n) => {
     const s = new Intl.NumberFormat([], { maximumFractionDigits: 0 }).format(Math.round(n));
     return `${s} NOK`;
@@ -95,10 +94,11 @@
   ];
   const guess = (t) => (GUESS.find(([, re]) => re.test(t)) || ["other"])[0];
 
+  const catOf = (c) => CATS[c] || CATS.other;
   const pic = (it) =>
     it.img
       ? `<img src="${esc(it.img)}" alt="" loading="lazy" onerror="this.style.display='none'" />`
-      : `<div class="bk-ph" style="--h:${hue(it.title)}"><span>${CATS[it.cat].icon}</span></div>`;
+      : `<div class="bk-ph" style="--c:${window.tint(it.title)}"><span>${catOf(it.cat).icon}</span></div>`;
 
   const stars = (val) =>
     `<span class="stars bk-stars">${[1, 2, 3, 4, 5]
@@ -185,7 +185,7 @@
           cats.length > 1
             ? `<div class="wi-who bk-cats" style="margin-top:12px">
                 <button data-cat="all" class="${ui.cat === "all" ? "on" : ""}">All</button>
-                ${cats.map((c) => `<button data-cat="${c}" class="${ui.cat === c ? "on" : ""}">${CATS[c].icon} ${CATS[c].name}</button>`).join("")}
+                ${cats.map((c) => `<button data-cat="${c}" class="${ui.cat === c ? "on" : ""}">${catOf(c).icon} ${catOf(c).name}</button>`).join("")}
               </div>`
             : ""
         }
@@ -197,7 +197,7 @@
                   const st = steps(it), sd = st.filter((s) => s.done).length;
                   return `<article class="bk-card ${it.status === "done" ? "done" : ""}" data-open="${it.id}">
                     <div class="bk-img">${pic(it)}
-                      <i class="bk-cat">${CATS[it.cat].icon}</i>
+                      <i class="bk-cat">${catOf(it.cat).icon}</i>
                       ${it.status === "done" ? `<i class="wi-done">✓</i>` : it.date ? `<i class="bk-when">${countdown(it.date)}</i>` : ""}
                     </div>
                     <h3>${esc(it.title)}</h3>

@@ -264,20 +264,6 @@ window.renderBudget = function (root) {
   const rows = tx().filter((t) => t.date >= from && t.date <= to && (isCf(t) || isReimburseCat(t.category)));
   const inc = sumIncome(rows);
   const exp = sumExpense(rows);
-  const cf = inc + exp;
-  let expBd = 0, expAct = 0;
-  for (const g of BUDGET_GROUPS) {
-    if (g.income) continue;
-    for (const cat of g.cats) {
-      expBd += bdAmt(month, cat);
-      expAct += -catFlow(rows, cat);
-    }
-  }
-  const left = expBd - expAct;
-  const rate = inc ? Math.round((cf / inc) * 100) : null;
-  const leftTxt = expBd ? money(left) : (rate == null ? "—" : rate + "% saved");
-  const leftCls = expBd ? (left < 0 ? "neg" : "pos") : (rate == null ? "" : (rate >= 0 ? "pos" : "neg"));
-  const leftLab = expBd ? "Left to spend" : "Savings rate";
   const spend = groupCats(rows, -1).slice(0, 6);
   const spendMax = spend[0] ? spend[0][1] : 1;
   const spendHtml = spend.length ? spend.map((pair) => {
@@ -325,8 +311,6 @@ window.renderBudget = function (root) {
     <section class="summary">
       <div class="sum-btn"><span>${periodMode() === "cycle" ? "This cycle in" : "This month in"}</span><b class="pos">${money(inc)}</b></div>
       <div class="sum-btn"><span>${periodMode() === "cycle" ? "This cycle out" : "This month out"}</span><b>${money(exp)}</b></div>
-      <div class="sum-btn"><span>Net cash flow</span><b class="${cf >= 0 ? "pos" : "neg"}">${money(cf)}</b></div>
-      <div class="sum-btn"><span>${leftLab}</span><b class="${leftCls}">${leftTxt}</b></div>
     </section>
     <div class="cf-cols">
       <section class="card-block">

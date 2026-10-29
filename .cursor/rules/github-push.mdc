@@ -1,13 +1,15 @@
 ---
-description: Always commit and push Fahdrik app changes to GitHub without waiting to be asked.
+description: Do not commit or push Fahdrik unless Fahd asks.
 alwaysApply: true
 ---
 
-# Ship to GitHub automatically
+# GitHub only when asked
 
-After finishing app changes in this repo, **commit and push to `origin/main` without asking**. Do not wait for “update GitHub” and do not prompt at the end of the session.
+Do **not** commit or push after app changes. Wait until Fahd explicitly asks to update GitHub, commit, or push.
 
-- Include the files you changed (HTML/CSS/JS/SW, plus this rules folder if you edited it).
+When they do ask:
+
+- Include the files changed for that ship (HTML/CSS/JS/SW, plus this rules folder if you edited it).
 - Never commit secrets (`.env`, private keys). `config.js` with the published anon key is already in the repo.
 - Never `--force` push, never skip hooks, never amend a commit that is already on the remote.
 - Use the existing GitHub credentials / GCM helper if `git push` needs auth.

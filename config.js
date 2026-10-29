@@ -22,3 +22,9 @@ window.OMDB_KEY = "9990f3d9";
 
 // Secret for the Google Calendar subscribe link. Same value as Edge Function secret FAHDRIK_ICS_TOKEN.
 window.FAHDRIK_ICS_TOKEN = "b2da988d219d94865acd8f3dc26a9ef0";
+
+window.PALETTE = ["#80b0e8", "#ffc0c0", "#008471", "#d1caea", "#d6d35f", "#c45f3f", "#f5d243", "#898e46", "#f29cc3"];
+window.tint = (s) => {
+  const p = window.PALETTE;
+  return p[[...String(s || "x")].reduce((a, c) => a + c.charCodeAt(0), 0) % p.length];
+};

@@ -89,11 +89,10 @@
   const defaultOff = (r) => new Set(r.ingredients.map((l, i) => (isStaple(l) ? i : -1)).filter((i) => i >= 0));
 
   // ---------- photo helpers ----------
-  const hue = (s) => [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 360, 7);
   const cover = (r) =>
     r.img
       ? `<img src="${esc(r.img)}" alt="" loading="lazy" />`
-      : `<div class="r-ph" style="--h:${hue(r.title)}"><span>🍽️</span></div>`;
+      : `<div class="r-ph" style="--c:${window.tint(r.title)}"><span>🍽️</span></div>`;
 
   function resizeImage(file, max = 900) {
     return new Promise((resolve, reject) => {
@@ -207,7 +206,7 @@
         <button class="r-back" data-act="back">← ${ui.id ? "Cancel" : "Recipes"}</button>
         <form class="r-form">
           <label class="r-photo">
-            <div class="r-hero">${d.img ? `<img src="${esc(d.img)}" alt="" />` : `<div class="r-ph" style="--h:${hue(d.title || "x")}"><span>📷</span><small>Add a photo</small></div>`}</div>
+            <div class="r-hero">${d.img ? `<img src="${esc(d.img)}" alt="" />` : `<div class="r-ph" style="--c:${window.tint(d.title)}"><span>📷</span><small>Add a photo</small></div>`}</div>
             <input type="file" accept="image/*" hidden />
           </label>
           ${d.img ? `<button type="button" class="r-link" data-act="rmphoto">Remove photo</button>` : ""}
