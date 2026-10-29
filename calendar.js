@@ -137,7 +137,7 @@
       if (p.lane < MAX_LANES) show.push(p);
       else for (let c = p.c0; c < p.c0 + p.span; c++) extra[c]++;
     }
-    return { show, extra, lanes: Math.min(MAX_LANES, occ.length) };
+    return { show, extra, lanes: Math.min(MAX_LANES, occ.length) || 1 };
   }
 
   function chipLabel(p, week) {
@@ -443,12 +443,16 @@
     }
     function fitMonthBoard() {
       const board = root.querySelector(".cal-board:not(.cal-board-week)");
-      if (!board) return;
-      const mid = board.querySelectorAll(".cal-pane")[1];
-      if (!mid) return;
-      board.style.height = "";
-      const h = mid.offsetHeight;
-      if (h) board.style.height = h + "px";
+      const mid = board && board.querySelector(".cal-track")?.children[1];
+      if (!board || !mid) return;
+      const apply = () => {
+        const weeks = mid.querySelectorAll(".cal-week");
+        const row = (weeks[0] && weeks[0].offsetHeight) || 102;
+        if (!weeks.length) return;
+        board.style.height = weeks.length * row + "px";
+      };
+      apply();
+      requestAnimationFrame(apply);
     }
     function animateMonth(dir) {
       if (sliding) return;

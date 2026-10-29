@@ -109,8 +109,8 @@ h1 span {
   margin-bottom: 16px;
   touch-action: pan-y;
 }
-.cal-track { display: flex; will-change: transform; }
-.cal-pane, .month { display: flex; flex-direction: column; flex: 0 0 100%; min-width: 0; width: 100%; border: 0; border-radius: 0; margin: 0; background: transparent; }
+.cal-track { display: flex; align-items: flex-start; will-change: transform; }
+.cal-pane, .month { display: flex; flex-direction: column; flex: 0 0 100%; min-width: 0; width: 100%; height: max-content; align-self: flex-start; border: 0; border-radius: 0; margin: 0; background: transparent; }
 .cal-views { display: flex; gap: 6px; margin: 0 0 12px; }
 .cal-views button { flex: 1; border: 1px solid rgb(var(--ov) / 12%); background: rgb(var(--ov) / 6%); color: var(--muted); border-radius: 999px; padding: 7px 10px; font: inherit; cursor: pointer; }
 .cal-views button.on { color: var(--text); background: var(--primary)33; border-color: var(--primary); }
@@ -140,9 +140,10 @@ h1 span {
 .wk-now::before { content: ""; position: absolute; left: -4px; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--secondary); }
 .cal-week {
   display: grid;
+  flex: none;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  grid-template-rows: 28px repeat(var(--lanes, 0), 16px) auto;
-  min-height: 0;
+  grid-template-rows: 22px repeat(var(--lanes, 1), 18px) 14px;
+  min-height: 102px;
   border-bottom: 1px solid rgb(var(--ov) / 8%);
 }
 .cal-week:last-child { border-bottom: 0; }
