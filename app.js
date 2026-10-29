@@ -74,6 +74,7 @@ function show(id) {
   else body.innerHTML = "<p>Coming soon — we'll build this one next.</p>";
   grid.hidden = header.hidden = true;
   topbar.hidden = false;
+  document.body.classList.add("in-section");
   iconnav.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.id === id));
   detail.hidden = false;
   if (!skipHistory) {
@@ -87,6 +88,7 @@ function home() {
   grid.hidden = header.hidden = false;
   topbar.hidden = true;
   detail.hidden = true;
+  document.body.classList.remove("in-section");
 }
 document.getElementById("brand").onclick = (e) => {
   e.preventDefault();
@@ -120,5 +122,5 @@ document.addEventListener("pointerdown", (e) => {
   }
 }, true);
 
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=97", { updateViaCache: "none" }).then((r) => r.update());
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=98", { updateViaCache: "none" }).then((r) => r.update());
 

@@ -13,6 +13,7 @@
   --success: #fbcf4f;
   --ink: #222023;
   --cream: #faeadd;
+  --sheet: #2e2c30;
 }
 * { box-sizing: border-box; margin: 0; }
 body {
@@ -27,6 +28,7 @@ body {
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 #app { max-width: 1000px; margin: 0 auto; padding: 32px 20px 48px; }
+body.in-section #app { padding-top: 0; padding-bottom: 16px; }
 .top { margin-bottom: 28px; }
 h1 { font-size: clamp(2rem, 6vw, 3.2rem); letter-spacing: -.02em; }
 h1 span {
@@ -328,16 +330,48 @@ h1 span {
   .tile .desc { font-size: .7rem; }
 }
 
-/* Icon nav inside sections */
+/* Icon nav inside sections — selected tab connects into the sheet */
 .topbar[hidden] { display: none; }
-.topbar { display: flex; align-items: center; gap: 12px; }
+.topbar { display: flex; align-items: center; gap: 12px; max-width: 1000px; margin: 0 auto; width: 100%; }
 .brand span { display: none; }
-.iconnav { display: flex; flex: 1; justify-content: space-between; gap: 4px; max-width: 560px; margin-left: auto; }
-.iconnav button { flex: 1; max-width: 48px; height: 40px; font-size: 1.25rem; background: rgb(var(--ov) / 6%); border: 1px solid transparent; border-radius: 12px; cursor: pointer; transition: transform .15s, background .15s; }
-.iconnav button:hover { transform: translateY(-2px); background: rgb(var(--ov) / 12%); }
-.iconnav button.on { background: color-mix(in srgb, var(--c) 35%, transparent); border-color: var(--c); }
+.iconnav { display: flex; flex: 1; justify-content: space-between; gap: 2px; max-width: 560px; margin-left: auto; padding: 0 10px; }
+.iconnav button { flex: 1; max-width: 48px; height: 40px; font-size: 1.25rem; background: transparent; border: 0; border-radius: 16px 16px 0 0; cursor: pointer; position: relative; z-index: 2; transition: background .15s; }
+.iconnav button:hover { background: rgb(var(--ov) / 8%); }
+.iconnav button.on { background: var(--sheet); }
+.iconnav button.on:hover { background: var(--sheet); }
+.iconnav button.on::before,
+.iconnav button.on::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+}
+.iconnav button.on::before {
+  left: -12px;
+  background: radial-gradient(circle at 0 0, transparent 12px, var(--sheet) 12.5px);
+}
+.iconnav button.on::after {
+  right: -12px;
+  background: radial-gradient(circle at 100% 0, transparent 12px, var(--sheet) 12.5px);
+}
+body.in-section .topbar {
+  background: transparent;
+  border-bottom: 0;
+  padding-bottom: 0;
+  align-items: flex-end;
+  overflow: visible;
+}
+body.in-section .detail {
+  background: var(--sheet);
+  border-radius: 22px;
+  margin-top: 0;
+  padding: 18px 16px 48px;
+  min-height: calc(100dvh - 88px);
+}
 @media (min-width: 700px) { .brand span { display: inline; } }
-@media (max-width: 420px) { .topbar { padding: 8px 10px; gap: 6px; } .iconnav button { height: 36px; font-size: 1.05rem; border-radius: 10px; } .brand img { width: 26px; height: 26px; } }
+@media (max-width: 420px) { .topbar { padding: 8px 10px 0; gap: 6px; } .iconnav button { height: 38px; font-size: 1.05rem; } .brand img { width: 26px; height: 26px; } }
 
 [hidden] { display: none !important; }
 .detail, #detail-body { min-width: 0; max-width: 100%; overflow-x: clip; }
