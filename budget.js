@@ -169,11 +169,6 @@ function cycleContaining(isoDate) {
   const [s, e] = paycheckCycle(key);
   return { start: s, end: e, key: s };
 }
-function daysUntil(isoDate) {
-  const a = new Date(isoDate + "T00:00"), b = new Date();
-  b.setHours(0, 0, 0, 0);
-  return Math.round((a - b) / 86400000);
-}
 function bdDefaultMonth() {
   const now = ymd(new Date());
   if (periodMode() === "cycle") return cycleContaining(now).key;
@@ -264,11 +259,7 @@ window.renderBudget = function (root) {
   const month = ui.dashMonth || bdDefaultMonth();
   ui.dashMonth = month;
   const [from, to] = periodBounds(month);
-  let sub = periodLabel(month);
-  if (periodMode() === "cycle" && month === cycleContaining(ymd(new Date())).key) {
-    const nxt = daysUntil(to) + 1;
-    sub += nxt <= 0 ? " · payday today" : nxt === 1 ? " · payday tomorrow" : " · " + nxt + " days until payday";
-  }
+  const sub = periodLabel(month);
   const vis = listAccounts().filter((a) => !a.hidden);
   const rows = tx().filter((t) => t.date >= from && t.date <= to && (isCf(t) || isReimburseCat(t.category)));
   const inc = sumIncome(rows);
