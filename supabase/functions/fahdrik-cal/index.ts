@@ -80,18 +80,17 @@ function eventBlock(e: { id: number; title: string; time?: string; end?: string;
     const endHm = (e.end || "").replace(":", "").length >= 4 ? hmOf(e.end) : "";
     let ed = last;
     let endClock = endHm;
-    if (!endClock || endClock <= time) {
-      if (endClock && endClock < time) {
-        ed = nextDay(last);
-      } else {
-        let eh = +time.slice(0, 2) + 1;
-        const em = time.slice(2, 4);
-        if (eh >= 24) {
-          eh = 0;
-          ed = nextDay(day);
-        }
-        endClock = `${String(eh).padStart(2, "0")}${em}`;
+    if (!endClock) {
+      let eh = +time.slice(0, 2) + 1;
+      const em = time.slice(2, 4);
+      if (eh >= 24) {
+        eh = 0;
+        ed = nextDay(day);
       }
+      endClock = `${String(eh).padStart(2, "0")}${em}`;
+    } else if (endClock < time && ed === day) {
+      // Overnight on the start day only — do not bump again if endYmd is already the morning.
+      ed = nextDay(day);
     }
     const end = `${ed}T${endClock}00`;
     lines.push(`DTSTART;TZID=Europe/Oslo:${start}`);
