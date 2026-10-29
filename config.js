@@ -8,10 +8,10 @@ window.SUPABASE = {
   url: "https://onkxsuboohmmecroweia.supabase.co",
   anonKey: "sb_publishable_ZM4NL0bTSAEmVm_RrYzsXA_AVSZ-Yg_",
 };
-// Only these Google accounts can sync. Leave empty while testing, then add both emails.
+// Only these Google accounts can sync. Anyone else is signed out immediately.
 window.FAHDRIK_EMAILS = [
-  // "fahd@fahd.no",
-  // "eagogstad@gmail.com",
+  "fahd@fahd.no",
+  "eagogstad@gmail.com",
 ];
 
 // Optional alternative to OMDb: free key from themoviedb.org (Settings → API).
