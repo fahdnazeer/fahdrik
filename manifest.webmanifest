@@ -3,7 +3,7 @@
   "short_name": "Fahdrik",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#120d24",
-  "theme_color": "#1b1530",
+  "background_color": "#121212",
+  "theme_color": "#121212",
   "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
 }
