@@ -330,7 +330,7 @@
             .join("")}</div>
           <input name="q" class="cal-search" placeholder="Search plans" value="${esc(ui.q)}" autocomplete="off" />
         </div>
-        ${ui.view === "schedule" ? scheduleHtml(today) : ui.view === "month" ? dayList : ""}`
+        ${ui.view === "schedule" ? scheduleHtml(today) : ui.view === "month" ? dayList : ""}
         ${icsUrl() ? `<button type="button" class="cal-ics" data-act="ics">Copy Google Calendar link</button><p class="cal-ics-hint">Google Calendar → Other calendars → From URL. Updates can take a few hours.</p>` : ""}
         ${sheetOn ? "" : `<button type="button" class="cal-fab" data-act="add" aria-label="Add a plan"></button>`}
         ${
