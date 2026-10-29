@@ -364,6 +364,12 @@ body.in-section .topbar {
   align-items: flex-end;
   overflow: visible;
 }
+body.in-section .brand {
+  height: 40px;
+  padding: 0 4px 2px;
+  margin-bottom: 0;
+  flex-shrink: 0;
+}
 body.in-section .detail {
   background: var(--sheet);
   border-radius: 22px 22px 0 0;
@@ -373,7 +379,12 @@ body.in-section .detail {
   width: 100%;
 }
 @media (min-width: 700px) { .brand span { display: inline; } }
-@media (max-width: 420px) { .topbar { padding: 8px 10px 0; gap: 6px; } .iconnav button { height: 38px; font-size: 1.05rem; } .brand img { width: 26px; height: 26px; } }
+@media (max-width: 420px) {
+  .topbar { padding: 8px 10px 0; gap: 6px; }
+  .iconnav button { height: 38px; font-size: 1.05rem; }
+  .brand img { width: 26px; height: 26px; }
+  body.in-section .brand { height: 38px; }
+}
 
 [hidden] { display: none !important; }
 .detail, #detail-body { min-width: 0; max-width: 100%; overflow-x: clip; }
