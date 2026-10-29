@@ -312,7 +312,7 @@ window.renderBudget = function (root) {
   const monthOn = periodMode() === "month" ? " on" : "";
 
   root.innerHTML = `
-    <p class="bd-note muted">Samboer · Peach · read only${s.savedAt ? " · updated " + fmtSaved(s.savedAt) : ""}</p>
+    ${s.savedAt ? `<p class="bd-note muted">Updated ${fmtSaved(s.savedAt)}</p>` : ""}
     <div class="bd-nav">
       <button type="button" class="bd-arr" data-shift="-1" aria-label="Previous">‹</button>
       <div class="bd-title"><h3>${esc(sub)}</h3></div>
