@@ -184,10 +184,12 @@
                   (it) => `<article class="w-card" data-open="${it.id}">
                     <div class="w-poster">${poster(it)}<i class="w-type-badge">${TYPE[it.type]}</i>
                       ${it.status === "watched" && avg(it) ? `<i class="w-score">★ ${fmt(avg(it))}</i>` : ""}
-                      ${it.status === "watching" && it.type === "show" && it.season ? `<i class="w-score">S${it.season} E${it.episode || 1}</i>` : ""}
+                      ${it.type === "show" && it.season && it.status !== "want" ? `<i class="w-score${it.status === "watched" && avg(it) ? " top" : ""}">S${it.season}</i>` : ""}
                     </div>
                     <h3>${esc(it.title)}</h3>
-                    <p>${it.status === "watched" && it.watchedAt ? "Watched " + shortDate(it.watchedAt) : esc([it.year, it.platform].filter(Boolean).join(" · "))}</p>
+                    <p>${it.status === "watched"
+                      ? [it.watchedAt ? "Watched " + shortDate(it.watchedAt) : "", it.type === "show" && it.season ? "Season " + it.season : ""].filter(Boolean).join(" · ")
+                      : esc([it.year, it.platform].filter(Boolean).join(" · "))}</p>
                   </article>`
                 )
                 .join("")}</div>`
@@ -225,9 +227,8 @@
         ${it.overview ? `<p class="w-desc">${esc(it.overview)}</p>` : ""}
 
         ${
-          it.type === "show" && it.status === "watching"
-            ? `<div class="w-progress">Season <button data-act="s-">−</button><b>${it.season || 1}</b><button data-act="s+">+</button>
-               Episode <button data-act="e-">−</button><b>${it.episode || 1}</b><button data-act="e+">+</button></div>`
+          it.type === "show" && it.status !== "want"
+            ? `<div class="w-progress">Season <button data-act="s-">−</button><b>${it.season || 1}</b><button data-act="s+">+</button></div>`
             : ""
         }
 
@@ -389,7 +390,7 @@
       if (ty) {
         const it = state.items.find((x) => x.id === ui.id);
         it.type = ty.dataset.settype;
-        if (it.type === "movie") { it.season = it.episode = null; }
+        if (it.type === "movie") it.season = null;
         save();
         return render();
       }
@@ -399,7 +400,7 @@
         it.status = st.dataset.status;
         if (it.status === "watched" && !it.watchedAt) it.watchedAt = Date.now();
         if (it.status !== "watched") it.watchedAt = null;
-        if (it.status === "watching" && it.type === "show") { it.season = it.season || 1; it.episode = it.episode || 1; }
+        if (it.type === "show" && it.status !== "want") it.season = it.season || 1;
         ui.tab = it.status;
         save();
         return render();
@@ -428,10 +429,8 @@
         }).catch(() => (ui.notFound = true)).finally(() => { ui.finding = false; if (ui.view === "detail") render(); });
         return;
       }
-      else if (act === "s+") { it.season = (it.season || 1) + 1; it.episode = 1; save(); }
+      else if (act === "s+") { it.season = (it.season || 1) + 1; save(); }
       else if (act === "s-") { it.season = Math.max(1, (it.season || 1) - 1); save(); }
-      else if (act === "e+") { it.episode = (it.episode || 1) + 1; save(); }
-      else if (act === "e-") { it.episode = Math.max(1, (it.episode || 1) - 1); save(); }
       else if (act === "del") {
         if (!ui.sure) { ui.sure = true; setTimeout(() => { ui.sure = false; if (ui.view === "detail") render(); }, 3000); }
         else { state.items = state.items.filter((x) => x !== it); save(); ui.view = "list"; ui.sure = false; if (window.dropInner) window.dropInner(); }

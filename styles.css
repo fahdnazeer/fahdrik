@@ -590,7 +590,6 @@ button.who:active { transform: scale(.94); }
 .w-progress { display: flex; align-items: center; gap: 6px; margin: 14px 0 0; color: var(--muted); font-size: .9rem; flex-wrap: wrap; }
 .w-progress b { color: var(--text); min-width: 18px; text-align: center; }
 .w-progress button { width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgb(var(--ov) / 15%); background: rgb(var(--ov) / 6%); color: var(--text); cursor: pointer; }
-.w-progress button + b + button + * { margin-left: 8px; }
 .w-rate { margin-bottom: 12px; }
 .w-who { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
 .w-who b { width: 48px; font-weight: 600; } .w-who em { font-style: normal; color: #fbbf24; font-size: .85rem; }
