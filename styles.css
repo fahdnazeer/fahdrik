@@ -739,7 +739,7 @@ button.who:active { transform: scale(.94); }
 .bd-empty { padding: 12px 0 24px; display: grid; gap: 12px; }
 .bd-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
 .bd-arr { width: 40px; height: 40px; border-radius: 12px; border: 1px solid rgb(var(--ov) / 16%); background: rgb(var(--ov) / 8%); color: var(--text); font-size: 1.4rem; cursor: pointer; }
-.bd-title { flex: 1; } .bd-title h3 { font-size: 1.2rem; }
+.bd-title { flex: 1; text-align: center; } .bd-title h3 { font-size: 1rem; font-weight: 650; }
 .bd-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
 .bd-tabs .tab { background: rgb(var(--ov) / 8%); color: var(--muted); border: 1px solid rgb(var(--ov) / 14%); border-radius: 999px; padding: 7px 14px; font: inherit; cursor: pointer; }
 .bd-tabs .tab.on { color: var(--text); background: var(--success)33; border-color: var(--success); }

@@ -324,7 +324,7 @@ window.renderBudget = function (root) {
     <p class="bd-note muted">Samboer · Peach · read only${s.savedAt ? " · updated " + fmtSaved(s.savedAt) : ""}</p>
     <div class="bd-nav">
       <button type="button" class="bd-arr" data-shift="-1" aria-label="Previous">‹</button>
-      <div class="bd-title"><h3>Dashboard</h3><p class="muted">${esc(sub)}</p></div>
+      <div class="bd-title"><h3>${esc(sub)}</h3></div>
       <button type="button" class="bd-arr" data-shift="1" aria-label="Next">›</button>
     </div>
     <div class="bd-tabs">
