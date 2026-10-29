@@ -1,2 +1,5 @@
 [functions.fahdrik-cal]
 verify_jwt = false
+
+[functions.fahdrik-samboer]
+verify_jwt = false

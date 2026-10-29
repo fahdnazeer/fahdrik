@@ -685,6 +685,46 @@ button.who:active { transform: scale(.94); }
 .bk-add-photo { aspect-ratio: 1; border-radius: 12px; border: 1px dashed rgb(var(--ov) / 30%); display: grid; place-content: center; font-size: 1.6rem; color: var(--muted); cursor: pointer; }
 .bk-done textarea { width: 100%; }
 
+.bd-note { font-size: .8rem; margin-bottom: 12px; }
+.bd-empty { padding: 12px 0 24px; display: grid; gap: 12px; }
+.bd-drop { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 999px; background: rgb(var(--ov) / 8%); border: 1px dashed rgb(var(--ov) / 25%); cursor: pointer; width: fit-content; }
+.bd-drop input { display: none; }
+.bd-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.bd-arr { width: 40px; height: 40px; border-radius: 12px; border: 1px solid rgb(var(--ov) / 16%); background: rgb(var(--ov) / 8%); color: var(--text); font-size: 1.4rem; cursor: pointer; }
+.bd-title { flex: 1; } .bd-title h3 { font-size: 1.2rem; }
+.bd-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.bd-tabs .tab { background: rgb(var(--ov) / 8%); color: var(--muted); border: 1px solid rgb(var(--ov) / 14%); border-radius: 999px; padding: 7px 14px; font: inherit; cursor: pointer; }
+.bd-tabs .tab.on { color: var(--text); background: #4ade8033; border-color: #4ade80; }
+.card-block { background: rgb(var(--ov) / 6%); border: 1px solid rgb(var(--ov) / 12%); border-radius: 20px; padding: 16px; margin-bottom: 14px; }
+.hero-top { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.hero-top span, .hero-split span { display: block; color: var(--muted); font-size: .8rem; }
+.hero-top b { display: block; font-size: 1.8rem; letter-spacing: -.03em; }
+.hero-split { display: flex; gap: 20px; }
+.hero-split b { font-size: 1.1rem; }
+.bd-chart { margin-top: 12px; }
+.bd-chart svg { width: 100%; height: auto; display: block; }
+.bd-chart text { fill: var(--muted); font-size: 18px; }
+.summary { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
+@media (min-width: 720px) { .summary { grid-template-columns: repeat(4, 1fr); } }
+.sum-btn { background: rgb(var(--ov) / 6%); border: 1px solid rgb(var(--ov) / 12%); border-radius: 16px; padding: 12px 14px; text-align: left; }
+.sum-btn span { display: block; color: var(--muted); font-size: .75rem; }
+.sum-btn b { font-size: 1.05rem; }
+.cf-cols { display: grid; gap: 14px; margin-bottom: 14px; }
+@media (min-width: 800px) { .cf-cols { grid-template-columns: 1fr 1fr; } }
+.card-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+.card-head h3 { font-size: .95rem; }
+.cf-row, .dash-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
+.cf-row .ico, .acc-ico { width: 28px; height: 28px; border-radius: 8px; display: grid; place-content: center; font-size: 13px; flex: none; color: #1a1220; }
+.cf-row .desc, .dash-item .desc { flex: 1; min-width: 0; }
+.cf-row .desc b, .dash-item .desc b { display: block; font-size: .85rem; }
+.dash-item small { color: var(--muted); font-size: .72rem; }
+.cf-track { height: 6px; border-radius: 99px; background: rgb(var(--ov) / 12%); margin-top: 6px; overflow: hidden; }
+.cf-track i { display: block; height: 100%; border-radius: 99px; }
+.cf-row .amt, .dash-item .amt { font-size: .85rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dash-g { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 10px 0 4px; }
+.pos { color: #4ade80; } .neg { color: #fb7185; }
+.empty { color: var(--muted); font-size: .85rem; padding: 8px 0; }
+
 /* iPhone zooms focused fields under 16px; more specific rules used inherit/14px */
 input, textarea, select { font-size: 16px !important; }
 /* Keep the blue focus ring inside the field so overflow doesn't clip the left edge */

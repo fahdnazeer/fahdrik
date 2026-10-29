@@ -70,6 +70,7 @@ function show(id) {
   else if (id === "recipes") window.renderRecipes(body);
   else if (id === "shopping") window.renderShopping(body);
   else if (id === "todo") window.renderTodo(body);
+  else if (id === "budget") window.renderBudget(body);
   else body.innerHTML = "<p>Coming soon — we'll build this one next.</p>";
   grid.hidden = header.hidden = true;
   topbar.hidden = false;
@@ -119,5 +120,5 @@ document.addEventListener("pointerdown", (e) => {
   }
 }, true);
 
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=89", { updateViaCache: "none" }).then((r) => r.update());
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=90", { updateViaCache: "none" }).then((r) => r.update());
 

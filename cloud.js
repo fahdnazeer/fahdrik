@@ -3,7 +3,7 @@
   const cfg = window.SUPABASE || {};
   const emails = (window.FAHDRIK_EMAILS || []).map((e) => String(e).toLowerCase().trim()).filter(Boolean);
   const enabled = !!(cfg.url && cfg.anonKey);
-  const KEYS = ["fahdrik.todos", "fahdrik.shopping", "fahdrik.recipes", "fahdrik.watch", "fahdrik.reading", "fahdrik.wishes", "fahdrik.bucket", "fahdrik.calendar"];
+  const KEYS = ["fahdrik.todos", "fahdrik.shopping", "fahdrik.recipes", "fahdrik.watch", "fahdrik.reading", "fahdrik.wishes", "fahdrik.bucket", "fahdrik.calendar", "fahdrik.samboer"];
   const watchers = {};
   const timers = {};
   let ignore = {};
