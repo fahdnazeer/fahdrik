@@ -4,6 +4,7 @@
   const emails = (window.FAHDRIK_EMAILS || []).map((e) => String(e).toLowerCase().trim()).filter(Boolean);
   const enabled = !!(cfg.url && cfg.anonKey);
   const KEYS = ["fahdrik.todos", "fahdrik.shopping", "fahdrik.recipes", "fahdrik.watch", "fahdrik.reading", "fahdrik.wishes", "fahdrik.bucket", "fahdrik.calendar", "fahdrik.samboer"];
+  const READONLY = new Set(["fahdrik.samboer"]);
   const watchers = {};
   const timers = {};
   let ignore = {};
@@ -32,6 +33,7 @@
     if (!emails.length) return true;
     return emails.includes(emailOf(u));
   }
+  window.cloudSignedIn = () => !!(userOf() && allowed(userOf()));
 
   function notify(key, data) {
     (watchers[key] || []).forEach((fn) => { try { fn(data); } catch (e) { console.warn(e); } });
@@ -72,6 +74,10 @@
       el.innerHTML = label;
       el.hidden = !label;
     });
+    const body = document.getElementById("detail-body");
+    if (body && body._storeKey === "fahdrik.samboer" && typeof body._rerender === "function") {
+      try { body._rerender(); } catch (_) {}
+    }
   }
 
   async function upsert(key, data) {
@@ -105,7 +111,7 @@
       notify(row.id, row.data);
     }
     for (const key of KEYS) {
-      if (have.has(key)) continue;
+      if (have.has(key) || READONLY.has(key)) continue;
       const local = localStorage.getItem(key);
       if (local) await upsert(key, JSON.parse(local));
     }
@@ -155,7 +161,7 @@
     save: (key, data) => {
       ignore[key] = JSON.stringify(data);
       localSet(key, data);
-      if (!sb || !userOf() || !allowed(userOf())) return;
+      if (READONLY.has(key) || !sb || !userOf() || !allowed(userOf())) return;
       clearTimeout(timers[key]);
       timers[key] = setTimeout(() => upsert(key, data), 350);
     },

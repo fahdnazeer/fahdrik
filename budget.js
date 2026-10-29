@@ -68,13 +68,6 @@ function asSnap(s) {
     savedAt: s.savedAt || 0,
   };
 }
-function pickSamboer(d) {
-  if (!d) return null;
-  if (d.users && typeof d.users === "object") return d.users.Samboer || d.users.samboer || null;
-  if (Array.isArray(d.tx)) return d;
-  return d;
-}
-
 window.store.watchState(BKEY, { tx: [] });
 
 function tx() { return asSnap(snap).tx; }
@@ -277,25 +270,6 @@ function chartSvg(points) {
     + labels + "</svg>";
 }
 
-function applyFile(d) {
-  const s = pickSamboer(d);
-  if (!s) return false;
-  snap = { ...asSnap(s), savedAt: Date.now() };
-  window.store.save(BKEY, snap);
-  return true;
-}
-
-async function tryLocalPeach() {
-  try {
-    const r = await fetch("http://127.0.0.1:8765/data.json", { cache: "no-store" });
-    if (!r.ok) return false;
-    const d = await r.json();
-    return applyFile(d);
-  } catch (_) {
-    return false;
-  }
-}
-
 function fmtSaved(ts) {
   if (!ts) return "";
   return new Date(ts).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
@@ -308,11 +282,10 @@ window.renderBudget = function (root) {
   const s = asSnap(snap);
   const has = s.tx.length || Object.keys(s.accMeta).length;
   if (!has) {
-    root.innerHTML = `<div class="bd-empty">
-      <p>Budget shows the <b>Samboer</b> dashboard from Peach, read-only.</p>
-      <p class="muted">It updates when Peach saves Samboer.</p>
-    </div>`;
-    tryLocalPeach().then((ok) => { if (ok) window.renderBudget(root); });
+    const inSync = window.cloudSignedIn && window.cloudSignedIn();
+    root.innerHTML = inSync
+      ? `<div class="bd-empty"><p class="muted">Waiting for the Samboer dashboard.</p></div>`
+      : `<div class="bd-empty"><p class="muted">Sign in to see the Samboer dashboard.</p><p><button type="button" class="sync-btn" data-sync="in">Sign in</button></p></div>`;
     return;
   }
 
@@ -444,5 +417,3 @@ window.renderBudget = function (root) {
     };
   });
 };
-
-tryLocalPeach();
