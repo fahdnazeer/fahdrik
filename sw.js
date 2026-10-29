@@ -1,4 +1,4 @@
-const CACHE = "fahdrik-v96";
+const CACHE = "fahdrik-v97";
 const FILES = ["./", "index.html", "styles.css", "app.js", "calendar.js", "todo.js", "shopping.js", "recipes.js", "watch.js", "reading.js", "wishes.js", "bucket.js", "budget.js", "config.js", "cloud.js", "icon.svg", "manifest.webmanifest"];
 self.addEventListener("install", (e) => {
   self.skipWaiting();

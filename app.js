@@ -1,13 +1,13 @@
 const sections = [
-  { id: "calendar", name: "Calendar", emoji: "📅", color: "#6c5ce7", desc: "Plans & dates" },
-  { id: "todo", name: "To-do", emoji: "✅", color: "#c8f54a", desc: "Things to get done" },
-  { id: "shopping", name: "Shopping", emoji: "🛒", color: "#f5c6a0", desc: "Groceries & more" },
-  { id: "recipes", name: "Recipes", emoji: "🍳", color: "#ff5ba8", desc: "What's for dinner" },
-  { id: "budget", name: "Budget", emoji: "💰", color: "#c8f54a", desc: "Money together" },
-  { id: "watch", name: "Watch list", emoji: "🎬", color: "#ff5ba8", desc: "Movies & shows" },
-  { id: "reading", name: "Reading list", emoji: "📚", color: "#6c5ce7", desc: "Books to read" },
-  { id: "wish", name: "Wish list", emoji: "🎁", color: "#ff5ba8", desc: "Things we want" },
-  { id: "bucket", name: "Bucket list", emoji: "🌍", color: "#6c5ce7", desc: "Dreams & trips" },
+  { id: "calendar", name: "Calendar", emoji: "📅", color: "#522a6f", desc: "Plans & dates" },
+  { id: "todo", name: "To-do", emoji: "✅", color: "#fbcf4f", desc: "Things to get done" },
+  { id: "shopping", name: "Shopping", emoji: "🛒", color: "#faeadd", desc: "Groceries & more" },
+  { id: "recipes", name: "Recipes", emoji: "🍳", color: "#f29cb7", desc: "What's for dinner" },
+  { id: "budget", name: "Budget", emoji: "💰", color: "#fbcf4f", desc: "Money together" },
+  { id: "watch", name: "Watch list", emoji: "🎬", color: "#f29cb7", desc: "Movies & shows" },
+  { id: "reading", name: "Reading list", emoji: "📚", color: "#ddaaff", desc: "Books to read" },
+  { id: "wish", name: "Wish list", emoji: "🎁", color: "#f29cb7", desc: "Things we want" },
+  { id: "bucket", name: "Bucket list", emoji: "🌍", color: "#522a6f", desc: "Dreams & trips" },
 ];
 
 const grid = document.getElementById("grid");
@@ -120,5 +120,5 @@ document.addEventListener("pointerdown", (e) => {
   }
 }, true);
 
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=96", { updateViaCache: "none" }).then((r) => r.update());
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=97", { updateViaCache: "none" }).then((r) => r.update());
 
