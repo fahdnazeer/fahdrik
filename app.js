@@ -77,6 +77,7 @@ function show(id) {
   document.body.classList.add("in-section");
   iconnav.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.id === id));
   detail.hidden = false;
+  syncTabStroke();
   if (!skipHistory) {
     if (fromHome) history.pushState({ s: id }, "", "#" + id);
     else history.replaceState({ s: id }, "", "#" + id);
@@ -89,7 +90,20 @@ function home() {
   topbar.hidden = true;
   detail.hidden = true;
   document.body.classList.remove("in-section");
+  document.body.style.removeProperty("--tab-l");
+  document.body.style.removeProperty("--tab-w");
 }
+function syncTabStroke() {
+  requestAnimationFrame(() => {
+    const btn = iconnav.querySelector("button.on");
+    if (!btn || !document.body.classList.contains("in-section")) return;
+    const br = btn.getBoundingClientRect();
+    const dr = detail.getBoundingClientRect();
+    document.body.style.setProperty("--tab-l", br.left - dr.left + "px");
+    document.body.style.setProperty("--tab-w", br.width + "px");
+  });
+}
+window.addEventListener("resize", syncTabStroke);
 document.getElementById("brand").onclick = (e) => {
   e.preventDefault();
   if (location.hash) history.pushState(null, "", location.pathname);
@@ -122,5 +136,5 @@ document.addEventListener("pointerdown", (e) => {
   }
 }, true);
 
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=112", { updateViaCache: "none" }).then((r) => r.update());
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=113", { updateViaCache: "none" }).then((r) => r.update());
 

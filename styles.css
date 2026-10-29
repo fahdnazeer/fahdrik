@@ -377,12 +377,44 @@ body.in-section .brand {
   flex-shrink: 0;
 }
 body.in-section .detail {
+  position: relative;
   background: var(--sheet);
   border-radius: 22px 22px 0 0;
   margin: 0;
   padding: 18px 16px calc(48px + env(safe-area-inset-bottom));
   min-height: calc(100dvh - 56px);
   width: 100%;
+}
+body.in-section .detail::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 22px;
+  pointer-events: none;
+  z-index: 3;
+  border-radius: 22px 22px 0 0;
+  border: 1.5px solid #f29cb7;
+  border-bottom: 0;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 calc(var(--tab-l, 40%) - 12px),
+    transparent calc(var(--tab-l, 40%) - 12px),
+    transparent calc(var(--tab-l, 40%) + var(--tab-w, 48px) + 12px),
+    #000 calc(var(--tab-l, 40%) + var(--tab-w, 48px) + 12px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 calc(var(--tab-l, 40%) - 12px),
+    transparent calc(var(--tab-l, 40%) - 12px),
+    transparent calc(var(--tab-l, 40%) + var(--tab-w, 48px) + 12px),
+    #000 calc(var(--tab-l, 40%) + var(--tab-w, 48px) + 12px),
+    transparent 100%
+  );
 }
 @media (min-width: 700px) { .brand span { display: inline; } }
 @media (max-width: 420px) {
