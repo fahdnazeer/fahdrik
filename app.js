@@ -105,12 +105,12 @@ function syncTabStroke() {
     }
     const b = btn.getBoundingClientRect();
     const s = detail.getBoundingClientRect();
-    const pad = 12, tr = 16, sr = 22;
+    const pad = 12, tr = 16, sr = 22, fade = 100;
     const join = b.bottom;
     const top = b.top - 3;
     const left = s.left;
     const width = Math.max(1, s.width);
-    const height = Math.max(1, join - top + 6);
+    const height = Math.max(1, join - top + sr + 8);
     svg.removeAttribute("hidden");
     svg.style.transform = `translate(${left}px, ${top}px)`;
     svg.setAttribute("width", width);
@@ -120,10 +120,11 @@ function syncTabStroke() {
     const y = (n) => n - top;
     const yJ = y(join), yT = y(b.top);
     const xL = x(b.left), xR = x(b.right);
-    const x0 = x(s.left), x1 = x(s.right);
+    const x0 = x(s.left) + 0.75, x1 = x(s.right) - 0.75;
     const d = [
-      `M ${x0 + sr} ${yJ}`,
-      `H ${xL - pad}`,
+      `M ${x0} ${yJ + sr}`,
+      `A ${sr} ${sr} 0 0 1 ${x0 + sr} ${yJ}`,
+      xL - pad > x0 + sr ? `H ${xL - pad}` : "",
       `A ${pad} ${pad} 0 0 0 ${xL} ${yJ - pad}`,
       `V ${yT + tr}`,
       `A ${tr} ${tr} 0 0 1 ${xL + tr} ${yT}`,
@@ -131,11 +132,27 @@ function syncTabStroke() {
       `A ${tr} ${tr} 0 0 1 ${xR} ${yT + tr}`,
       `V ${yJ - pad}`,
       `A ${pad} ${pad} 0 0 0 ${xR + pad} ${yJ}`,
-      `H ${x1 - sr}`,
-    ].join(" ");
-    const tl = Math.max(0.02, (xL - pad) / width);
-    const trp = Math.min(0.98, (xR + pad) / width);
-    svg.innerHTML = `<defs><linearGradient id="tabStrokeFade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f29cb7" stop-opacity="0"/><stop offset="${tl}" stop-color="#f29cb7" stop-opacity="1"/><stop offset="${trp}" stop-color="#f29cb7" stop-opacity="1"/><stop offset="1" stop-color="#f29cb7" stop-opacity="0"/></linearGradient></defs><path d="${d}" fill="none" stroke="url(#tabStrokeFade)" stroke-width="1.5" stroke-linejoin="round"/>`;
+      x1 - sr > xR + pad ? `H ${x1 - sr}` : "",
+      `A ${sr} ${sr} 0 0 1 ${x1} ${yJ + sr}`,
+    ].filter(Boolean).join(" ");
+    const nearL = xL - pad - x0 < fade;
+    const nearR = x1 - (xR + pad) < fade;
+    const stops = [];
+    const add = (off, op) => {
+      off = Math.min(1, Math.max(0, off));
+      const last = stops[stops.length - 1];
+      if (last && off - last.off < 0.001) { last.op = op; return; }
+      if (last && off < last.off) return;
+      stops.push({ off, op });
+    };
+    add(0, nearL ? 1 : 0);
+    if (!nearL) add((xL - pad - fade) / width, 0);
+    add((xL - pad) / width, 1);
+    add((xR + pad) / width, 1);
+    if (!nearR) { add((xR + pad + fade) / width, 0); add(1, 0); }
+    else add(1, 1);
+    const stopXml = stops.map((st) => `<stop offset="${st.off}" stop-color="#f29cb7" stop-opacity="${st.op}"/>`).join("");
+    svg.innerHTML = `<defs><linearGradient id="tabStrokeFade" x1="0" y1="0" x2="1" y2="0">${stopXml}</linearGradient></defs><path d="${d}" fill="none" stroke="url(#tabStrokeFade)" stroke-width="1.5" stroke-linejoin="round"/>`;
   });
 }
 window.addEventListener("resize", syncTabStroke);
@@ -172,5 +189,5 @@ document.addEventListener("pointerdown", (e) => {
   }
 }, true);
 
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=115", { updateViaCache: "none" }).then((r) => r.update());
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=116", { updateViaCache: "none" }).then((r) => r.update());
 
