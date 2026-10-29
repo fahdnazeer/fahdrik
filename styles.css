@@ -335,7 +335,7 @@ h1 span {
 .topbar[hidden] { display: none; }
 .topbar { display: flex; align-items: center; gap: 12px; max-width: 1000px; margin: 0 auto; width: 100%; }
 .brand span { display: none; }
-.iconnav { display: flex; flex: 1; justify-content: space-between; gap: 2px; max-width: 560px; margin-left: auto; padding: 0 10px; }
+.iconnav { display: flex; flex: 1; justify-content: flex-end; gap: 4px; max-width: 560px; margin-left: auto; padding: 0 44px 0 8px; }
 .iconnav button { flex: 1; max-width: 48px; height: 40px; font-size: 1.25rem; background: transparent; border: 0; border-radius: 16px 16px 0 0; cursor: pointer; position: relative; z-index: 2; transition: background .15s; }
 .iconnav button:hover { background: rgb(var(--ov) / 8%); }
 .iconnav button.on { background: var(--sheet); overflow: visible; }
