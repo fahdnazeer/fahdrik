@@ -120,5 +120,5 @@ document.addEventListener("pointerdown", (e) => {
   }
 }, true);
 
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=90", { updateViaCache: "none" }).then((r) => r.update());
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=91", { updateViaCache: "none" }).then((r) => r.update());
 

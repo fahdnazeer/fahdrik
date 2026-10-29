@@ -310,21 +310,8 @@ window.renderBudget = function (root) {
   if (!has) {
     root.innerHTML = `<div class="bd-empty">
       <p>Budget shows the <b>Samboer</b> dashboard from Peach, read-only.</p>
-      <p class="muted">Open Peach on this Mac (Samboer) so it can sync, or drop a <code>data.json</code> export here.</p>
-      <label class="bd-drop">Load data.json<input type="file" accept="application/json,.json"></label>
+      <p class="muted">It updates when Peach saves Samboer.</p>
     </div>`;
-    root.querySelector("input").onchange = (e) => {
-      const f = e.target.files && e.target.files[0];
-      if (!f) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        try {
-          if (applyFile(JSON.parse(reader.result))) window.renderBudget(root);
-          else alert("Could not find Samboer in that file.");
-        } catch (_) { alert("That file is not valid JSON."); }
-      };
-      reader.readAsText(f);
-    };
     tryLocalPeach().then((ok) => { if (ok) window.renderBudget(root); });
     return;
   }
