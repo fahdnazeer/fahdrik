@@ -58,8 +58,19 @@
     String(s).toLowerCase().normalize("NFD").replace(/\p{M}/gu, "").replace(/['’`]/g, "").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
 
   // OMDb only matches whole words exactly ("oceans" misses "Ocean's"), so try a few forgiving variants
-  function omdbVariants(q) {
-    const t = norm(q).split(" ").filter(Boolean);
+  function parseQuery(q) {
+    const tokens = norm(q).split(" ").filter(Boolean);
+    let year = "";
+    const rest = [];
+    for (const w of tokens) {
+      if (!year && /^(19|20)\d{2}$/.test(w)) year = w;
+      else rest.push(w);
+    }
+    return { year, tokens: rest, title: rest.join(" ") };
+  }
+
+  function omdbVariants(tokens) {
+    const t = tokens.filter(Boolean);
     const out = new Set();
     const add = (tokens) => {
       if (!tokens.length) return;
@@ -75,21 +86,26 @@
   }
 
   async function search(q) {
+    const parsed = parseQuery(q);
+    const qt = parsed.tokens.length ? parsed.tokens : norm(q).split(" ").filter(Boolean);
+    const year = parsed.year;
     if (window.OMDB_KEY) {
-      const qt = norm(q).split(" ").filter(Boolean);
-      const pages = await Promise.all(
-        omdbVariants(q).map((v) =>
-          fetch(`https://www.omdbapi.com/?apikey=${window.OMDB_KEY}&s=${encodeURIComponent(v)}`)
-            .then((r) => r.json())
-            .then((d) => d.Search || [])
-            .catch(() => [])
-        )
-      );
+      const variants = omdbVariants(qt);
+      const fetchPage = (v, page) =>
+        fetch(`https://www.omdbapi.com/?apikey=${window.OMDB_KEY}&s=${encodeURIComponent(v)}${year ? "&y=" + year : ""}${page > 1 ? "&page=" + page : ""}`)
+          .then((r) => r.json())
+          .then((d) => d.Search || [])
+          .catch(() => []);
+      const pages = await Promise.all([
+        ...variants.map((v) => fetchPage(v, 1)),
+        ...(variants[0] ? [fetchPage(variants[0], 2)] : []),
+      ]);
       const seen = new Set();
       const all = pages.flat().filter((x) => (x.Type === "movie" || x.Type === "series") && !seen.has(x.imdbID) && seen.add(x.imdbID));
       // Keep titles where every typed word starts a word in the title
       const compactQ = qt.join("");
       const matches = all.filter((x) => {
+        if (year && !(x.Year || "").includes(year)) return false;
         const words = norm(x.Title).split(" ");
         const compactT = words.join("");
         return compactT.startsWith(compactQ) || qt.every((w) => words.some((tw) => tw.startsWith(w)));
@@ -98,7 +114,7 @@
       return matches
         .map((x, i) => [x, i])
         .sort((a, b) => rank(a[0]) - rank(b[0]) || (a[0].Poster === "N/A") - (b[0].Poster === "N/A") || a[1] - b[1])
-        .slice(0, 6)
+        .slice(0, 20)
         .map(([x]) => ({
           type: x.Type === "series" ? "show" : "movie",
           title: x.Title,
@@ -108,10 +124,14 @@
           imdb: x.imdbID,
         }));
     }
-    const d = await (await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${window.TMDB_KEY}&query=${encodeURIComponent(q)}`)).json();
+    const d = await (await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${window.TMDB_KEY}&query=${encodeURIComponent(parsed.title || q)}${year ? "&year=" + year : ""}`)).json();
     return (d.results || [])
-      .filter((x) => x.media_type === "movie" || x.media_type === "tv")
-      .slice(0, 6)
+      .filter((x) => {
+        if (x.media_type !== "movie" && x.media_type !== "tv") return false;
+        if (!year) return true;
+        return (x.release_date || x.first_air_date || "").startsWith(year);
+      })
+      .slice(0, 20)
       .map((x) => ({
         type: x.media_type === "tv" ? "show" : "movie",
         title: x.title || x.name,
@@ -161,7 +181,7 @@
         </div>
 
         <form class="w-add">
-          <input name="title" placeholder="${hasTmdb() ? "Search a movie or show…" : "Add a movie or show…"}" autocomplete="off" required />
+          <input name="title" placeholder="${hasTmdb() ? "Search a title, or add a year…" : "Add a movie or show…"}" autocomplete="off" required />
           ${hasTmdb() ? "" : `<button type="button" class="w-type" data-act="addtype" title="Movie or show">${TYPE[ui.addType]}</button>`}
           <button class="w-addbtn">Add</button>
           <div class="s-suggest w-suggest" hidden></div>
@@ -281,6 +301,19 @@
     let timer;
     const box = () => root.querySelector(".w-suggest");
     const hide = () => { const b = box(); if (b) { b.hidden = true; b.innerHTML = ""; } };
+    const placeSuggest = () => {
+      const b = box();
+      const inp = root.querySelector("input[name=title]");
+      const form = root.querySelector(".w-add");
+      if (!b || b.hidden || !inp || !form) return;
+      const r = inp.getBoundingClientRect();
+      const f = form.getBoundingClientRect();
+      const top = Math.round(r.bottom + 6);
+      b.style.left = `${Math.round(f.left)}px`;
+      b.style.width = `${Math.round(f.width)}px`;
+      b.style.top = `${top}px`;
+      b.style.maxHeight = `${Math.max(160, window.innerHeight - top - 16)}px`;
+    };
 
     root.oninput = (e) => {
       if (e.target.name !== "title" || !hasTmdb()) return;
@@ -299,16 +332,20 @@
             .map((x, i) => `<button type="button" data-pick="${i}">${x.poster ? `<img src="${esc(x.poster)}" alt="" onerror="this.style.visibility='hidden'" />` : `<i>${TYPE[x.type]}</i>`}<span><b>${esc(x.title)}</b><small>${TYPE[x.type]} ${esc(x.year)}</small></span></button>`)
             .join("");
           b.hidden = false;
+          placeSuggest();
         } catch (_) { hide(); }
       }, 300);
     };
-    root.addEventListener("focusout", (e) => { if (e.target.name === "title") hide(); }, { signal });
+    window.addEventListener("resize", placeSuggest, { signal });
     root.addEventListener("pointerdown", (e) => {
       const pick = e.target.closest("[data-pick]");
-      if (!pick) return;
-      e.preventDefault();
-      add(ui.results[+pick.dataset.pick]);
-      render();
+      if (pick) {
+        e.preventDefault();
+        add(ui.results[+pick.dataset.pick]);
+        render();
+        return;
+      }
+      if (!e.target.closest(".w-suggest") && e.target.name !== "title") hide();
     }, { signal });
 
     root.onsubmit = (e) => {

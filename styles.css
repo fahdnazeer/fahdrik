@@ -629,6 +629,14 @@ button.who:active { transform: scale(.94); }
 .w-suggest button { padding: 6px 8px; }
 .w-suggest img { border-radius: 5px; flex: none; }
 .w-suggest span { gap: 1px; line-height: 1.25; }
+.w-add .w-suggest {
+  position: fixed;
+  top: auto; left: auto; right: auto;
+  z-index: 50;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
 .w-add .w-suggest button { height: auto; min-height: 54px; width: 100%; background: none; color: var(--text); text-align: left; }
 .w-add .w-suggest button:hover { background: #f8717126; }
 .w-date { width: 100%; height: 34px; padding: 6px 12px; background: var(--chip); color: var(--text); border: 1px solid rgb(var(--ov) / 13%); border-radius: 10px; font: inherit; font-size: .9rem; color-scheme: inherit; }
