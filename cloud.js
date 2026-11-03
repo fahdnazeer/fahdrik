@@ -40,24 +40,35 @@
   }
   window.stashFocus = (root) => {
     const ae = document.activeElement;
-    return (ae && root.contains(ae) && ae.getAttribute && ae.getAttribute("name")) || "";
+    if (!ae || !root.contains(ae) || !ae.getAttribute) return "";
+    const name = ae.getAttribute("name");
+    if (!name) return "";
+    const keep = { name };
+    if (typeof ae.selectionStart === "number") {
+      keep.start = ae.selectionStart;
+      keep.end = ae.selectionEnd;
+      keep.scroll = ae.scrollTop;
+    }
+    return keep;
   };
-  window.unstashFocus = (root, name) => {
+  window.unstashFocus = (root, keep) => {
+    const name = typeof keep === "string" ? keep : keep && keep.name;
     if (!name) return;
-    const el = root.querySelector(`[name="${name}"]`);
-    if (el) el.focus();
+    const el = root.querySelector(`[name="${CSS && CSS.escape ? CSS.escape(name) : name}"]`);
+    if (!el) return;
+    el.focus();
+    if (keep && typeof keep.start === "number") {
+      try { el.setSelectionRange(keep.start, keep.end); } catch (_) {}
+      if (typeof keep.scroll === "number") el.scrollTop = keep.scroll;
+    }
   };
 
   function rerender(key) {
     const body = document.getElementById("detail-body");
     if (body && body._storeKey === key && typeof body._rerender === "function") {
-      const ae = document.activeElement;
-      const name = ae && body.contains(ae) && ae.getAttribute && ae.getAttribute("name");
+      const keep = window.stashFocus(body);
       try { body._rerender(); } catch (_) {}
-      if (name) {
-        const next = body.querySelector(`[name="${name}"]`);
-        if (next) next.focus();
-      }
+      window.unstashFocus(body, keep);
     }
   }
 

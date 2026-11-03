@@ -428,7 +428,8 @@
                 <div class="cal-sheet nk-sheet" role="dialog" aria-labelledby="nk-word">
                   <button type="button" class="cal-sheet-x" data-act="close" aria-label="Close">✕</button>
                   <h3 id="nk-word">${esc(nounSg(editing) || lemma(editing))}</h3>
-                  ${editing.en ? `<p>${esc(editing.en)}</p>` : `<p>No translation yet</p>`}
+                  <p class="set-label">English</p>
+                  <input name="en" type="text" autocomplete="off" placeholder="In English…" value="${esc(editing.en || "")}" />
                   ${
                     editing.also && editing.also.length
                       ? `<div class="nk-also">
@@ -463,6 +464,49 @@
       state.items.filter((i) => (!i.cat && !i.catTried) || (!i.en && !i.enTried && !i.enManual) || i.senseVer !== 1 || needsNoun(i)).slice(0, 4).forEach((i) => classify(i));
     }
 
+    const sheetTyping = () => {
+      const el = document.activeElement;
+      return !!(el && el.closest && el.closest(".nk-sheet") && (el.name === "note" || el.name === "cat" || el.name === "en"));
+    };
+
+    const refreshSheet = (it) => {
+      const sheet = root.querySelector(".nk-sheet");
+      if (!sheet || !it || it.id !== ui.id) return false;
+      const h3 = sheet.querySelector("#nk-word");
+      if (h3) h3.textContent = nounSg(it) || lemma(it);
+      const enInp = sheet.querySelector("input[name=en]");
+      if (enInp && document.activeElement !== enInp && !it.enManual) enInp.value = it.en || "";
+      const catLabel = [...sheet.querySelectorAll(".set-label")].find((el) => /category/i.test(el.textContent || "")) || sheet.querySelector(".set-label");
+      let also = sheet.querySelector(".nk-also");
+      let forms = sheet.querySelector(".nk-forms");
+      if (it.also && it.also.length) {
+        if (!also) {
+          also = document.createElement("div");
+          also.className = "nk-also";
+        }
+        also.innerHTML = `<p class="set-label">Also means</p><ul>${it.also.map((s) => `<li>${esc(s)}</li>`).join("")}</ul>`;
+        const before = forms || catLabel;
+        if (before) before.parentNode.insertBefore(also, before);
+      } else if (also) also.remove();
+      if (it.gender || it.pl || it.def) {
+        if (!forms) {
+          forms = document.createElement("div");
+          forms.className = "nk-forms";
+        }
+        forms.innerHTML = `${nounName(it) ? `<p class="nk-forms-g">${esc(nounName(it))}</p>` : ""}<div class="nk-decl"><span></span><span>Ubestemt</span><span>Bestemt</span>${declRows(nounSgPairs(it), "Entall")}${declRows(nounPlPairs(it), "Flertall")}</div>`;
+        if (catLabel) catLabel.parentNode.insertBefore(forms, catLabel);
+      } else if (forms) forms.remove();
+      const sel = sheet.querySelector("select[name=cat]");
+      if (sel && document.activeElement !== sel) sel.value = it.cat || "";
+      return true;
+    };
+
+    const afterDict = (cur) => {
+      if (ui.practice) return;
+      if (cur && ui.id === cur.id && sheetTyping() && refreshSheet(cur)) return;
+      if (!ui.id || (cur && ui.id === cur.id)) render();
+    };
+
     const fillNoun = async (it) => {
       if (!needsNoun(it)) return;
       it.nounTried = true;
@@ -479,7 +523,7 @@
         if (!cur.catManual && (!cur.cat || cur.cat === "other")) cur.cat = "noun";
       }
       save();
-      if (!ui.practice && (!ui.id || ui.id === cur.id)) render();
+      afterDict(cur);
     };
 
     const classify = async (it) => {
@@ -504,7 +548,7 @@
       }
       const cur = state.items.find((x) => x.id === it.id);
       if (needsNoun(cur)) return fillNoun(cur);
-      if (!ui.practice && (!ui.id || ui.id === (cur && cur.id))) render();
+      afterDict(cur);
     };
 
     root._rerender = render;
@@ -525,11 +569,16 @@
     };
 
     root.oninput = (e) => {
-      if (e.target.name !== "note") return;
       const it = state.items.find((x) => x.id === ui.id);
-      if (!it) return;
-      it.note = e.target.value;
-      save();
+      if (!it || !e.target.closest(".nk-sheet")) return;
+      if (e.target.name === "note") {
+        it.note = e.target.value;
+        save();
+      } else if (e.target.name === "en") {
+        it.en = e.target.value;
+        it.enManual = true;
+        save();
+      }
     };
 
     root.onchange = (e) => {

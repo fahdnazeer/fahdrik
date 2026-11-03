@@ -816,7 +816,13 @@ button.who:active { transform: scale(.94); }
   font: inherit; color-scheme: inherit;
 }
 .nk-add select { flex: none; width: auto; min-width: 118px; }
-.nk-sheet select { width: 100%; min-width: 0; height: 40px; margin-bottom: 4px; }
+.nk-sheet select, .nk-sheet input[name=en] { width: 100%; min-width: 0; height: 40px; margin-bottom: 4px; }
+.nk-sheet input[name=en] {
+  background: var(--chip); color: var(--text);
+  border: 1px solid rgb(var(--ov) / 13%); border-radius: 10px;
+  padding: 6px 12px; font: inherit; color-scheme: inherit;
+}
+.nk-sheet #nk-word + .set-label { margin-top: 12px; }
 .nk-cat-hint { color: var(--muted); font-size: .75rem; margin: 0 0 12px; }
 .nk-forms { display: grid; gap: 8px; margin: 0 0 14px; padding: 10px 12px; border-radius: 12px; background: var(--chip); }
 .nk-forms-g { margin: 0; color: var(--muted); font-size: .8rem; }
