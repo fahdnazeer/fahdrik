@@ -46,7 +46,7 @@
     if (!it || it.cat !== "noun") return "";
     return [nounArt(it), it.def, it.pl ? "flertall " + it.pl : ""].filter(Boolean).join(" · ");
   };
-  const needsNoun = (it) => it && it.cat === "noun" && it.nounVer !== 3;
+  const needsNoun = (it) => it && it.nounVer !== 3 && it.no && !/\s/.test(headword(it.no));
 
   const wikiJson = (params) =>
     fetch("https://en.wiktionary.org/w/api.php?" + new URLSearchParams({ format: "json", origin: "*", ...params })).then((r) => (r.ok ? r.json() : null));
@@ -386,7 +386,7 @@
                       : ""
                   }
                   ${
-                    editing.cat === "noun" && (editing.gender || editing.pl || editing.def)
+                    editing.gender || editing.pl || editing.def
                       ? `<div class="nk-forms">
                           ${nounName(editing) ? `<p class="nk-forms-g">${esc(nounName(editing))}</p>` : ""}
                           <div class="nk-decl">
@@ -424,6 +424,7 @@
         if (info.pl) cur.pl = info.pl;
         if (info.def) cur.def = info.def;
         if (info.defPl) cur.defPl = info.defPl;
+        if (!cur.catManual && (!cur.cat || cur.cat === "other")) cur.cat = "noun";
       }
       save();
       if (!ui.practice && (!ui.id || ui.id === cur.id)) render();
@@ -466,10 +467,9 @@
       state.items.unshift(it);
       save();
       ui.tab = "learn";
+      ui.id = it.id;
       render();
       classify(it);
-      const inp = root.querySelector("input[name=no]");
-      if (inp) inp.focus();
     };
 
     root.oninput = (e) => {

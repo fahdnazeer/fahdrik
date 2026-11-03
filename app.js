@@ -143,11 +143,10 @@ const applyTheme = (mode) => {
 };
 applyTheme(localStorage.getItem(THEME_KEY) === "light" ? "light" : "dark");
 
-const settingsFab = document.getElementById("settings-fab");
 const settingsOverlay = document.getElementById("settings-overlay");
 const openSettings = () => { settingsOverlay.hidden = false; };
 const closeSettings = () => { settingsOverlay.hidden = true; };
-settingsFab.onclick = openSettings;
+document.querySelectorAll("[data-settings]").forEach((b) => { b.onclick = openSettings; });
 document.getElementById("settings-close").onclick = closeSettings;
 settingsOverlay.onclick = (e) => { if (e.target === settingsOverlay) closeSettings(); };
 document.getElementById("theme-seg").onclick = (e) => {
@@ -157,5 +156,5 @@ document.getElementById("theme-seg").onclick = (e) => {
   applyTheme(b.dataset.theme);
 };
 
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=198", { updateViaCache: "none" }).then((r) => r.update());
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=202", { updateViaCache: "none" }).then((r) => r.update());
 

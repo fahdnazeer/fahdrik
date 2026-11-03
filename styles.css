@@ -37,28 +37,23 @@ body {
 }
 #app { max-width: 1000px; margin: 0 auto; padding: 32px 20px 48px; }
 body.in-section #app { padding: 0; max-width: none; }
-.top { margin-bottom: 28px; }
-html.light .sync-btn { border: 1px solid rgb(var(--ov) / 12%); }
-.settings-fab {
-  position: fixed;
-  z-index: 20;
-  right: max(16px, env(safe-area-inset-right));
-  bottom: max(16px, env(safe-area-inset-bottom));
+.top { margin-bottom: 28px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.menu-btn {
+  flex: none;
   width: 44px; height: 44px;
-  border: 0; border-radius: 50%;
-  background: var(--chip); color: var(--muted);
+  margin: -6px -8px 0 0;
+  border: 0; border-radius: 12px;
+  background: transparent; color: var(--text);
   display: grid; place-items: center;
   cursor: pointer;
-  box-shadow: 0 8px 20px #0005;
 }
-html.light .settings-fab { border: 1px solid rgb(var(--ov) / 12%); }
-.settings-fab:hover { color: var(--text); }
-body.in-section .settings-fab { display: none; }
+.menu-btn:hover { background: var(--chip); }
+html.light .sync-btn { border: 1px solid rgb(var(--ov) / 12%); }
 .settings-overlay {
   position: fixed; inset: 0; z-index: 40;
   background: #000c;
-  display: grid; place-items: end center;
-  padding: 16px 16px max(20px, env(safe-area-inset-bottom));
+  display: grid; place-items: center;
+  padding: 20px;
 }
 .settings-sheet { width: min(400px, 100%); }
 .set-label { color: var(--muted); font-size: .8rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; margin: 16px 0 10px; }
