@@ -829,6 +829,15 @@ button.who:active { transform: scale(.94); }
 .nk-decl { display: grid; grid-template-columns: auto 1fr 1fr; gap: 6px 10px; align-items: baseline; font-size: .82rem; color: var(--muted); }
 .nk-decl span:nth-child(-n+3) { font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; }
 .nk-decl b { color: var(--text); font-weight: 650; font-size: .85rem; }
+.nk-deg { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px 10px; align-items: baseline; font-size: .82rem; color: var(--muted); text-align: center; }
+.nk-deg span { font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; }
+.nk-deg b { color: var(--text); font-weight: 650; font-size: .85rem; }
+.nk-conj { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; align-items: baseline; font-size: .82rem; color: var(--muted); }
+.nk-conj span { font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; }
+.nk-conj b { color: var(--text); font-weight: 650; font-size: .85rem; }
+.nk-bm { margin: 0 0 14px; }
+.nk-nb { margin: 4px 0 0; color: var(--text); font-size: .9rem; line-height: 1.35; }
+.nk-src { display: inline-block; margin-top: 8px; color: var(--muted); font-size: .72rem; }
 .nk-also { margin: 0 0 14px; }
 .nk-also ul { list-style: none; padding: 0; margin: 4px 0 0; display: grid; gap: 6px; }
 .nk-also li { color: var(--muted); font-size: .85rem; padding-left: 12px; position: relative; }

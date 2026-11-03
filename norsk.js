@@ -21,9 +21,9 @@
 
   const mapPos = (s) => {
     const t = String(s || "").toLowerCase();
+    if (/adverb/.test(t)) return "adv";
     if (/verb/.test(t)) return "verb";
     if (/noun|substantiv/.test(t)) return "noun";
-    if (/adverb/.test(t)) return "adv";
     if (/adj/.test(t)) return "adj";
     if (/pron/.test(t)) return "pron";
     if (/prep/.test(t)) return "prep";
@@ -82,7 +82,66 @@
     const pl = nounPlPairs(it)[0];
     return [sg && sg.filter(Boolean).join(" · "), pl && pl[0] ? "flertall " + pl.filter(Boolean).join(" · ") : ""].filter(Boolean).join(" · ");
   };
-  const needsNoun = (it) => it && it.nounVer !== 3 && it.no && !/\s/.test(headword(it.no));
+  const adjMeta = (it) => {
+    if (!it || (it.cat && it.cat !== "adj" && it.cat !== "adv") || (!it.comp && !it.sup)) return "";
+    return [it.comp, it.sup].filter(Boolean).join(" · ");
+  };
+  const verbInf = (it) => {
+    const h = headword(it && it.no);
+    return h ? "å " + h : "";
+  };
+  const verbMeta = (it) => {
+    if (!it || it.cat !== "verb" || (!it.pres && !it.pret && !it.perf)) return "";
+    return [it.pres, it.pret, it.perf].filter(Boolean).join(" · ");
+  };
+  const adjFormsHtml = (it) =>
+    `<div class="nk-deg">
+      <span>Positiv</span><span>Komparativ</span><span>Superlativ</span>
+      <b>${esc(lemma(it).replace(/^å\s+/, "") || headword(it.no))}</b><b>${esc(it.comp || "—")}</b><b>${esc(it.sup || "—")}</b>
+    </div>`;
+  const verbFormsHtml = (it) =>
+    `<div class="nk-conj">
+      <span>Infinitiv</span><b>${esc(verbInf(it))}</b>
+      <span>Presens</span><b>${esc(it.pres || "—")}</b>
+      <span>Preteritum</span><b>${esc(it.pret || "—")}</b>
+      <span>Perfektum</span><b>${esc(it.perf || "—")}</b>
+    </div>`;
+  const nounFormsHtml = (it) =>
+    `${nounName(it) ? `<p class="nk-forms-g">${esc(nounName(it))}</p>` : ""}
+      <div class="nk-decl">
+        <span></span><span>Ubestemt</span><span>Bestemt</span>
+        ${declRows(nounSgPairs(it), "Entall")}
+        ${declRows(nounPlPairs(it), "Flertall")}
+      </div>`;
+  const formsInner = (it) => {
+    if (!it) return "";
+    if (it.cat === "verb" && (it.pres || it.pret || it.perf)) return verbFormsHtml(it);
+    if ((it.cat === "adj" || it.cat === "adv") && (it.comp || it.sup)) return adjFormsHtml(it);
+    if (it.cat === "noun" && (it.gender || it.pl || it.def)) return nounFormsHtml(it);
+    if (it.pres || it.pret || it.perf) return verbFormsHtml(it);
+    if (it.comp || it.sup) return adjFormsHtml(it);
+    return "";
+  };
+  const sheetTitle = (it) => {
+    if (!it) return "";
+    if (it.cat === "verb" && (it.pres || it.pret || it.perf)) return verbInf(it);
+    if (it.cat === "noun" && (it.gender || it.def)) return nounSg(it) || lemma(it);
+    return lemma(it);
+  };
+  const oneWord = (it) => it && it.no && !/\s/.test(headword(it.no));
+  const needsBm = (it) => it && it.bmVer !== 1 && oneWord(it);
+  const needsNoun = (it) => it && it.nounVer !== 3 && it.cat === "noun" && oneWord(it);
+  const needsAdj = (it) => it && it.adjVer !== 1 && it.cat === "adj" && oneWord(it);
+  const needsVerb = (it) => it && it.verbVer !== 1 && it.cat === "verb" && oneWord(it);
+  const needsAdv = (it) => it && it.advVer !== 1 && it.cat === "adv" && oneWord(it);
+  const nbBlock = (it) => {
+    if (!it || (!it.nb && !(it.nbMore && it.nbMore.length) && !it.bmId)) return "";
+    return `<div class="nk-bm">
+      ${it.nb ? `<p class="set-label">På norsk</p><p class="nk-nb">${esc(it.nb)}</p>` : ""}
+      ${it.nbMore && it.nbMore.length ? `<ul class="nk-also">${it.nbMore.map((s) => `<li>${esc(s)}</li>`).join("")}</ul>` : ""}
+      ${it.bmId ? `<a class="nk-src" href="https://ordbokene.no/bm/${it.bmId}" target="_blank" rel="noopener">Bokmålsordboka · ordbokene.no</a>` : ""}
+    </div>`;
+  };
 
   const wikiJson = (params) =>
     fetch("https://en.wiktionary.org/w/api.php?" + new URLSearchParams({ format: "json", origin: "*", ...params })).then((r) => (r.ok ? r.json() : null));
@@ -157,6 +216,286 @@
     return { gender, pl, def, defPl };
   };
 
+  const parseAdjHead = (expanded) => {
+    const t = stripWiki(expanded);
+    if (!t) return null;
+    const comp = wikiForm(t, "comparative");
+    const sup = wikiForm(t, "indefinite superlative") || wikiForm(t, "superlative");
+    if (!comp && !sup) return null;
+    return { comp, sup };
+  };
+
+  const parseAdjTmpl = (inner) => {
+    const parts = String(inner || "")
+      .replace(/^\{\{|\}\}$/g, "")
+      .split("|")
+      .map((s) => s.trim());
+    let comp = "";
+    let sup = "";
+    const take = (k, v) => {
+      k = String(k || "").toLowerCase();
+      v = String(v || "")
+        .replace(/[\[\]']/g, "")
+        .replace(/\s+or\s+/g, "/")
+        .trim();
+      if (!v) return;
+      if (k === "comp" || k === "comparative") comp = v;
+      else if (/indefinite superlative|^sup$|^superl$/.test(k)) sup = v;
+      else if (k === "superlative" && !sup) sup = v;
+    };
+    if ((parts[0] || "").startsWith("head")) {
+      for (let i = 3; i + 1 < parts.length; i += 2) take(parts[i], parts[i + 1]);
+    } else {
+      parts.slice(1).forEach((p) => {
+        const m = p.match(/^(comp|sup|superl|comparative|superlative)=(.*)$/i);
+        if (m) take(m[1], m[2]);
+      });
+    }
+    if (!comp && !sup) return null;
+    return { comp, sup };
+  };
+
+  async function wikiTmpl(word, re) {
+    const q = headword(word);
+    if (!q || /\s/.test(q)) return null;
+    const d = await wikiJson({ action: "parse", page: q, prop: "wikitext" });
+    const sec = bokmal(d && d.parse && d.parse.wikitext && d.parse.wikitext["*"]);
+    if (!sec) return null;
+    const tmpl = (sec.match(re) || [])[0] || "";
+    if (!tmpl) return null;
+    const ex = await wikiJson({ action: "expandtemplates", title: q, text: tmpl, prop: "wikitext" });
+    const expanded = (ex && ex.expandtemplates && ex.expandtemplates.wikitext) || "";
+    return { tmpl, expanded };
+  }
+
+  async function guessAdj(word) {
+    try {
+      const got = await wikiTmpl(word, /\{\{(?:head\|nb\|adjective|nb-adj)[^}]*\}\}/i);
+      if (!got) return null;
+      return parseAdjHead(got.expanded) || parseAdjTmpl(got.tmpl);
+    } catch (_) {}
+    return null;
+  }
+
+  const parseVerbHead = (expanded) => {
+    const t = stripWiki(expanded);
+    if (!t) return null;
+    const pres = wikiForm(t, "present tense");
+    const both = wikiForm(t, "simple past and past participle");
+    const pret = both || wikiForm(t, "simple past") || wikiForm(t, "past tense");
+    const perf = wikiForm(t, "past participle") || wikiForm(t, "supine") || both;
+    if (!pres && !pret && !perf) return null;
+    return { pres, pret, perf };
+  };
+
+  const parseVerbTmpl = (inner) => {
+    const parts = String(inner || "")
+      .replace(/^\{\{|\}\}$/g, "")
+      .split("|")
+      .map((s) => s.trim());
+    if (!(parts[0] || "").startsWith("head")) return null;
+    const out = {};
+    let last = [];
+    const clean = (v) =>
+      String(v || "")
+        .replace(/[\[\]']/g, "")
+        .replace(/\s+or\s+/g, "/")
+        .trim();
+    const put = (keys, v) => {
+      if (!v) return;
+      keys.forEach((k) => {
+        out[k] = out[k] ? out[k] + "/" + v : v;
+      });
+    };
+    const keysOf = (k) => {
+      k = String(k || "").toLowerCase();
+      if (k === "or") return last;
+      if (/simple past and past participle/.test(k)) return ["pret", "perf"];
+      if (/present tense|^present$/.test(k)) return ["pres"];
+      if (/simple past|past tense/.test(k)) return ["pret"];
+      if (/past participle|^supine$/.test(k)) return ["perf"];
+      return [];
+    };
+    for (let i = 3; i + 1 < parts.length; i += 2) {
+      const keys = keysOf(parts[i]);
+      last = keys;
+      put(keys, clean(parts[i + 1]));
+    }
+    if (!out.pres && !out.pret && !out.perf) return null;
+    return { pres: out.pres || "", pret: out.pret || "", perf: out.perf || "" };
+  };
+
+  async function guessVerb(word) {
+    try {
+      const got = await wikiTmpl(word, /\{\{(?:head\|nb\|verb|nb-verb)[^}]*\}\}/i);
+      if (!got) return null;
+      return parseVerbHead(got.expanded) || parseVerbTmpl(got.tmpl);
+    } catch (_) {}
+    return null;
+  }
+
+  const ordGet = (path) =>
+    fetch("https://ord.uib.no" + path).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+
+  const uniqJoin = (arr) => {
+    const seen = new Set();
+    const out = [];
+    (arr || []).forEach((s) => {
+      s = String(s || "").trim();
+      if (!s || seen.has(s)) return;
+      seen.add(s);
+      out.push(s);
+    });
+    return out.join("/");
+  };
+
+  const fillDollars = (content, items) => {
+    let i = 0;
+    return String(content || "")
+      .replace(/\$/g, () => {
+        const it = (items || [])[i++] || {};
+        if (it.text) return it.text;
+        const lem = it.lemmas && it.lemmas[0];
+        return (lem && lem.lemma) || "";
+      })
+      .replace(/\s+/g, " ")
+      .replace(/\s+,/g, ",")
+      .trim();
+  };
+
+  const bmGlosses = (defs, out) => {
+    if (!defs || out.length >= 5) return;
+    const list = Array.isArray(defs) ? defs : [defs];
+    for (const el of list) {
+      if (!el || out.length >= 5) return;
+      if (el.type_ === "sub_article") continue;
+      if (el.type_ === "explanation") {
+        const s = fillDollars(el.content, el.items);
+        if (s && s.length > 1 && !/^brukt som adverb/i.test(s) && !/^jf\b/i.test(s)) out.push(s);
+      }
+      if (el.elements) bmGlosses(el.elements, out);
+      if (el.definitions) bmGlosses(el.definitions, out);
+    }
+  };
+
+  const formBy = (inf, pred) =>
+    uniqJoin((inf || []).filter((x) => x && x.word_form && pred(x.tags || [])).map((x) => x.word_form));
+
+  const posFromArt = (art) => {
+    const tags = (((art.lemmas || [])[0] || {}).paradigm_info || []).flatMap((p) => p.tags || []);
+    const g = ((((art.lemmas || [])[0] || {}).paradigm_info || [])[0] || {}).inflection_group || "";
+    if (tags.includes("ADV") || /^ADV/.test(g)) return "adv";
+    if (tags.includes("ADJ") || /^ADJ/.test(g)) return "adj";
+    if (tags.includes("VERB") || /^VERB/.test(g)) return "verb";
+    if (tags.includes("NOUN") || /^NOUN/.test(g)) return "noun";
+    return "";
+  };
+
+  const parasOf = (art, tag) => {
+    const all = ((art.lemmas || [])[0] || {}).paradigm_info || [];
+    const match = all.filter((p) => (p.tags || []).includes(tag));
+    const std = match.filter((p) => p.standardisation === "STANDARD");
+    return std.length ? std : match;
+  };
+
+  const parseBmArt = (art) => {
+    if (!art) return null;
+    const pos = posFromArt(art);
+    const glosses = [];
+    bmGlosses(art.body && art.body.definitions, glosses);
+    const info = { id: art.article_id, pos, glosses };
+    if (pos === "noun") {
+      const paras = parasOf(art, "NOUN");
+      const defs = [];
+      const pls = [];
+      const defPls = [];
+      let gender = "";
+      paras.forEach((p) => {
+        const t = p.tags || [];
+        const joined = t.join(" ");
+        if (/Neuter/.test(joined)) gender = !gender || gender === "n" ? "n" : "c";
+        else if (/Fem/.test(joined) && /Masc/.test(joined)) gender = "c";
+        else if (/Fem/.test(joined)) gender = gender === "m" ? "c" : gender || "f";
+        else if (/Masc/.test(joined)) gender = gender === "f" ? "c" : gender || "m";
+        const inf = p.inflection || [];
+        const d = formBy(inf, (x) => x.includes("Sing") && x.includes("Def"));
+        const pl = formBy(inf, (x) => x.includes("Plur") && x.includes("Ind"));
+        const dp = formBy(inf, (x) => x.includes("Plur") && x.includes("Def"));
+        if (d) defs.push(d);
+        if (pl) pls.push(pl);
+        if (dp) defPls.push(dp);
+      });
+      info.gender = gender;
+      info.def = uniqJoin(defs);
+      info.pl = uniqJoin(pls);
+      info.defPl = uniqJoin(defPls);
+    }
+    if (pos === "adj" || pos === "adv") {
+      const paras = parasOf(art, pos === "adv" ? "ADV" : "ADJ");
+      const inf = (paras[0] && paras[0].inflection) || [];
+      info.comp = formBy(inf, (x) => x.includes("Cmp"));
+      info.sup = formBy(inf, (x) => x.includes("Sup") && !x.includes("Def")) || formBy(inf, (x) => x.includes("Sup"));
+    }
+    if (pos === "verb") {
+      const pres = [];
+      const pret = [];
+      const perf = [];
+      parasOf(art, "VERB").forEach((p) => {
+        const inf = p.inflection || [];
+        const a = formBy(inf, (x) => x.includes("Pres") && !x.includes("Pass"));
+        const b = formBy(inf, (x) => x.includes("Past") && !x.includes("Pass"));
+        const c = formBy(inf, (x) => x.includes("<PerfPart>") && !x.includes("Adj"));
+        if (a) pres.push(a);
+        if (b) pret.push(b);
+        if (c) perf.push(c);
+      });
+      info.pres = uniqJoin(pres);
+      info.pret = uniqJoin(pret);
+      info.perf = uniqJoin(perf);
+    }
+    if (!info.pos && !info.glosses.length) return null;
+    return info;
+  };
+
+  async function bmIds(word) {
+    const q = headword(word);
+    if (!q) return [];
+    const d = await ordGet("/api/articles?w=" + encodeURIComponent(q) + "&dict=bm&scope=e");
+    let ids = (d && d.articles && d.articles.bm) || [];
+    if (ids.length) return ids;
+    const s = await ordGet("/api/suggest?q=" + encodeURIComponent(q) + "&n=6&dict=bm&include=ei");
+    const a = (s && s.a) || {};
+    const lemma = ((a.inflect || [])[0] || (a.exact || [])[0] || [])[0];
+    if (!lemma || lemma === q) return [];
+    const d2 = await ordGet("/api/articles?w=" + encodeURIComponent(lemma) + "&dict=bm&scope=e");
+    return (d2 && d2.articles && d2.articles.bm) || [];
+  }
+
+  async function guessBm(word, prefer) {
+    try {
+      const ids = await bmIds(word);
+      const arts = [];
+      for (const id of ids.slice(0, 4)) {
+        const art = await ordGet("/bm/article/" + id + ".json");
+        const parsed = parseBmArt(art);
+        if (parsed) arts.push(parsed);
+      }
+      if (!arts.length) return null;
+      const order = prefer ? [prefer, "adv", "adj", "verb", "noun"] : ["adv", "adj", "verb", "noun"];
+      return order.map((p) => arts.find((a) => a.pos === p)).find(Boolean) || arts[0];
+    } catch (_) {}
+    return null;
+  }
+
+  async function guessAdv(word) {
+    try {
+      const got = await wikiTmpl(word, /\{\{(?:head\|nb\|adverb|nb-adv)[^}]*\}\}/i);
+      if (!got) return null;
+      return parseAdjHead(got.expanded) || parseAdjTmpl(got.tmpl);
+    } catch (_) {}
+    return null;
+  }
+
   async function guessNoun(word) {
     const q = headword(word);
     if (!q || /\s/.test(q)) return null;
@@ -220,10 +559,13 @@
       const nb = blocks.filter((b) => /norwegian/i.test(b.language || ""));
       const use = nb.length ? nb : blocks;
       const found = collectGlosses(use);
-      if (!cat) cat = mapPos((nb[0] || blocks[0] || {}).partOfSpeech) || (found[0] && found[0].pos) || "";
+      const posOrder = ["adv", "adj", "verb", "noun", "pron", "prep", "phrase"];
+      const foundCats = [...new Set(use.map((b) => mapPos(b.partOfSpeech)).filter(Boolean))];
+      if (!cat) cat = posOrder.find((c) => foundCats.includes(c)) || (found[0] && found[0].pos) || foundCats[0] || "";
       if (found.length) {
-        en = found[0].s;
-        also = found.slice(1).map((x) => senseLine(x, found[0].pos));
+        const main = found.find((x) => x.pos === cat) || found[0];
+        en = main.s;
+        also = found.filter((x) => x !== main).map((x) => senseLine(x, main.pos));
       }
     } catch (_) {}
     if (!cat && !phrase) {
@@ -247,13 +589,23 @@
 
   const state = window.store.get(KEY, { items: [] });
   if (!Array.isArray(state.items)) state.items = [];
+  let dirty = false;
   state.items.forEach((i) => {
     if (!i.enManual && i.enTried && i.en && i.en.includes("; ")) {
       i.en = "";
       i.enTried = false;
+      dirty = true;
+    }
+    if (!i.catManual && i.cat === "verb" && !i.pres && !i.pret && !i.perf) {
+      i.cat = "";
+      i.catTried = false;
+      i.verbVer = 0;
+      i.senseVer = 0;
+      dirty = true;
     }
   });
   const save = () => window.store.save(KEY, state);
+  if (dirty) save();
   window.store.watchState(KEY, state);
 
   const withEn = () => state.items.filter((i) => i.en);
@@ -343,15 +695,8 @@
               <small>${ui.flipped ? "English" : "Norsk"}${catName(it.cat) ? " · " + catName(it.cat) : ""}</small>
               <b>${esc(ui.flipped ? it.en : lemma(it))}</b>
               ${
-                !ui.flipped && (it.pl || it.def)
-                  ? `<div class="nk-card-forms">
-                      ${nounName(it) ? `<p class="nk-forms-g">${esc(nounName(it))}</p>` : ""}
-                      <div class="nk-decl">
-                        <span></span><span>Ubestemt</span><span>Bestemt</span>
-                        ${declRows(nounSgPairs(it), "Entall")}
-                        ${declRows(nounPlPairs(it), "Flertall")}
-                      </div>
-                    </div>`
+                !ui.flipped && formsInner(it)
+                  ? `<div class="nk-card-forms">${formsInner(it)}</div>`
                   : ""
               }
               ${
@@ -417,7 +762,7 @@
                     <button type="button" class="nk-txt" data-act="open">
                       <b>${esc(lemma(it))}</b>
                       ${it.en ? `<span>${esc(it.en)}</span>` : ""}
-                      ${it.cat || it.note || it.pl || it.gender || (it.also && it.also.length) ? `<small>${[catName(it.cat), nounMeta(it), it.also && it.also.length ? it.also.length + " more meaning" + (it.also.length > 1 ? "s" : "") : "", it.note ? "Has a note" : ""].filter(Boolean).join(" · ")}</small>` : ""}
+                      ${it.cat || it.note || it.pl || it.gender || it.comp || it.sup || it.pres || (it.also && it.also.length) ? `<small>${[catName(it.cat), nounMeta(it), adjMeta(it), verbMeta(it), it.also && it.also.length ? it.also.length + " more meaning" + (it.also.length > 1 ? "s" : "") : "", it.note ? "Has a note" : ""].filter(Boolean).join(" · ")}</small>` : ""}
                     </button>
                     <button type="button" class="del" data-act="del" aria-label="Delete">✕</button>
                   </li>`
@@ -432,9 +777,10 @@
             ? `<div class="cal-overlay">
                 <div class="cal-sheet nk-sheet" role="dialog" aria-labelledby="nk-word">
                   <button type="button" class="cal-sheet-x" data-act="close" aria-label="Close">✕</button>
-                  <h3 id="nk-word">${esc(nounSg(editing) || lemma(editing))}</h3>
+                  <h3 id="nk-word">${esc(sheetTitle(editing))}</h3>
                   <p class="set-label">English</p>
                   <input name="en" type="text" autocomplete="off" placeholder="In English…" value="${esc(editing.en || "")}" />
+                  ${nbBlock(editing)}
                   ${
                     editing.also && editing.also.length
                       ? `<div class="nk-also">
@@ -443,18 +789,7 @@
                         </div>`
                       : ""
                   }
-                  ${
-                    editing.gender || editing.pl || editing.def
-                      ? `<div class="nk-forms">
-                          ${nounName(editing) ? `<p class="nk-forms-g">${esc(nounName(editing))}</p>` : ""}
-                          <div class="nk-decl">
-                            <span></span><span>Ubestemt</span><span>Bestemt</span>
-                            ${declRows(nounSgPairs(editing), "Entall")}
-                            ${declRows(nounPlPairs(editing), "Flertall")}
-                          </div>
-                        </div>`
-                      : ""
-                  }
+                  ${formsInner(editing) ? `<div class="nk-forms">${formsInner(editing)}</div>` : ""}
                   <p class="set-label">Category</p>
                   <select name="cat">${catOpts(editing.cat || "")}</select>
                   <p class="nk-cat-hint">Filled in from the dictionary. Change it if it’s wrong.</p>
@@ -466,7 +801,7 @@
             : ""
         }`;
       if (window.unstashFocus) window.unstashFocus(root, keepName);
-      state.items.filter((i) => (!i.cat && !i.catTried) || (!i.en && !i.enTried && !i.enManual) || i.senseVer !== 1 || needsNoun(i)).slice(0, 4).forEach((i) => classify(i));
+      state.items.filter((i) => (!i.cat && !i.catTried) || (!i.en && !i.enTried && !i.enManual) || i.senseVer !== 1 || needsBm(i) || needsNoun(i) || needsAdj(i) || needsVerb(i) || needsAdv(i)).slice(0, 4).forEach((i) => classify(i));
     }
 
     const sheetTyping = () => {
@@ -478,12 +813,24 @@
       const sheet = root.querySelector(".nk-sheet");
       if (!sheet || !it || it.id !== ui.id) return false;
       const h3 = sheet.querySelector("#nk-word");
-      if (h3) h3.textContent = nounSg(it) || lemma(it);
+      if (h3) h3.textContent = sheetTitle(it);
       const enInp = sheet.querySelector("input[name=en]");
       if (enInp && document.activeElement !== enInp && !it.enManual) enInp.value = it.en || "";
       const catLabel = [...sheet.querySelectorAll(".set-label")].find((el) => /category/i.test(el.textContent || "")) || sheet.querySelector(".set-label");
+      let bmEl = sheet.querySelector(".nk-bm");
       let also = sheet.querySelector(".nk-also");
       let forms = sheet.querySelector(".nk-forms");
+      const nbh = nbBlock(it);
+      if (nbh) {
+        const wrap = document.createElement("div");
+        wrap.innerHTML = nbh;
+        const next = wrap.firstElementChild;
+        if (bmEl) bmEl.replaceWith(next);
+        else {
+          const before = also || forms || catLabel;
+          if (before) before.parentNode.insertBefore(next, before);
+        }
+      } else if (bmEl) bmEl.remove();
       if (it.also && it.also.length) {
         if (!also) {
           also = document.createElement("div");
@@ -493,12 +840,13 @@
         const before = forms || catLabel;
         if (before) before.parentNode.insertBefore(also, before);
       } else if (also) also.remove();
-      if (it.gender || it.pl || it.def) {
+      const inner = formsInner(it);
+      if (inner) {
         if (!forms) {
           forms = document.createElement("div");
           forms.className = "nk-forms";
         }
-        forms.innerHTML = `${nounName(it) ? `<p class="nk-forms-g">${esc(nounName(it))}</p>` : ""}<div class="nk-decl"><span></span><span>Ubestemt</span><span>Bestemt</span>${declRows(nounSgPairs(it), "Entall")}${declRows(nounPlPairs(it), "Flertall")}</div>`;
+        forms.innerHTML = inner;
         if (catLabel) catLabel.parentNode.insertBefore(forms, catLabel);
       } else if (forms) forms.remove();
       const sel = sheet.querySelector("select[name=cat]");
@@ -513,6 +861,44 @@
         return;
       }
       render();
+    };
+
+    const fillBm = async (it) => {
+      if (!needsBm(it)) return;
+      it.bmTried = true;
+      it.bmVer = 1;
+      const info = await guessBm(it.no, it.catManual ? it.cat : "");
+      const cur = state.items.find((x) => x.id === it.id);
+      if (!cur) return;
+      cur.bmVer = 1;
+      if (info) {
+        cur.bmId = info.id;
+        if (info.pos && !cur.catManual) cur.cat = info.pos;
+        if (info.pos === "noun") {
+          if (info.gender) cur.gender = info.gender;
+          if (info.pl) cur.pl = info.pl;
+          if (info.def) cur.def = info.def;
+          if (info.defPl) cur.defPl = info.defPl;
+          cur.nounVer = 3;
+        }
+        if (info.pos === "adj" || info.pos === "adv") {
+          if (info.comp) cur.comp = info.comp;
+          if (info.sup) cur.sup = info.sup;
+          if (info.pos === "adj") cur.adjVer = 1;
+          if (info.pos === "adv") cur.advVer = 1;
+        }
+        if (info.pos === "verb") {
+          if (info.pres) cur.pres = info.pres;
+          if (info.pret) cur.pret = info.pret;
+          if (info.perf) cur.perf = info.perf;
+          cur.verbVer = 1;
+        }
+        if (info.glosses && info.glosses.length) {
+          cur.nb = info.glosses[0];
+          cur.nbMore = info.glosses.slice(1, 4);
+        }
+      }
+      save();
     };
 
     const fillNoun = async (it) => {
@@ -534,8 +920,68 @@
       afterDict(cur);
     };
 
+    const fillAdj = async (it) => {
+      if (!needsAdj(it)) return;
+      it.adjTried = true;
+      it.adjVer = 1;
+      const info = await guessAdj(it.no);
+      const cur = state.items.find((x) => x.id === it.id);
+      if (!cur) return;
+      cur.adjVer = 1;
+      if (info) {
+        if (info.comp) cur.comp = info.comp;
+        if (info.sup) cur.sup = info.sup;
+        if (!cur.catManual && !cur.cat) cur.cat = "adj";
+      }
+      save();
+      afterDict(cur);
+    };
+
+    const fillVerb = async (it) => {
+      if (!needsVerb(it)) return;
+      it.verbTried = true;
+      it.verbVer = 1;
+      const info = await guessVerb(it.no);
+      const cur = state.items.find((x) => x.id === it.id);
+      if (!cur) return;
+      cur.verbVer = 1;
+      if (info) {
+        if (info.pres) cur.pres = info.pres;
+        if (info.pret) cur.pret = info.pret;
+        if (info.perf) cur.perf = info.perf;
+        if (!cur.catManual && !cur.cat) cur.cat = "verb";
+      }
+      save();
+      afterDict(cur);
+    };
+
+    const fillAdv = async (it) => {
+      if (!needsAdv(it)) return;
+      it.advTried = true;
+      it.advVer = 1;
+      const info = await guessAdv(it.no);
+      const cur = state.items.find((x) => x.id === it.id);
+      if (!cur) return;
+      cur.advVer = 1;
+      if (info) {
+        if (info.comp) cur.comp = info.comp;
+        if (info.sup) cur.sup = info.sup;
+        if (!cur.catManual && !cur.cat) cur.cat = "adv";
+      }
+      save();
+      afterDict(cur);
+    };
+
+    const fillForms = (it) => {
+      if (needsAdj(it)) return fillAdj(it);
+      if (needsVerb(it)) return fillVerb(it);
+      if (needsAdv(it)) return fillAdv(it);
+      if (needsNoun(it)) return fillNoun(it);
+    };
+
     const classify = async (it) => {
       if (!it) return;
+      if (needsBm(it)) await fillBm(it);
       const needCat = !it.cat && !it.catTried && !it.catManual;
       const needEn = !it.en && !it.enTried && !it.enManual;
       const needSense = it.senseVer !== 1;
@@ -547,7 +993,7 @@
         const cur = state.items.find((x) => x.id === it.id);
         if (cur) {
           cur.senseVer = 1;
-          if (needCat && !cur.catManual && info.cat) cur.cat = info.cat;
+          if (needCat && !cur.catManual && !cur.cat && info.cat) cur.cat = info.cat;
           if (needEn && !cur.en && !cur.enManual && info.en) cur.en = info.en;
           const extra = (info.also || []).filter((s) => s && s.toLowerCase() !== String(cur.en || "").toLowerCase());
           cur.also = extra;
@@ -555,7 +1001,7 @@
         }
       }
       const cur = state.items.find((x) => x.id === it.id);
-      if (needsNoun(cur)) return fillNoun(cur);
+      if (fillForms(cur)) return;
       afterDict(cur);
     };
 
@@ -595,7 +1041,8 @@
       if (!it) return;
       it.cat = e.target.value;
       it.catManual = true;
-      if (needsNoun(it)) fillNoun(it);
+      it.bmVer = 0;
+      fillBm(it).then(() => fillForms(it));
       save();
     };
 
@@ -635,7 +1082,8 @@
       if (act === "open") {
         ui.id = it.id;
         render(true);
-        if (needsNoun(it)) fillNoun(it);
+        if (needsBm(it)) fillBm(it).then(() => afterDict(it));
+        else fillForms(it);
         return;
       }
       if (act === "toggle") {
