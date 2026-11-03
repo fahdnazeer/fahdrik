@@ -6,8 +6,9 @@ const sections = [
   { id: "budget", name: "Budget", emoji: "💰", color: "#d6d35f", desc: "Money together" },
   { id: "watch", name: "Watch list", emoji: "🎬", color: "#c45f3f", desc: "Movies & shows" },
   { id: "reading", name: "Reading list", emoji: "📚", color: "#f5d243", desc: "Books to read" },
-  { id: "wish", name: "Wish list", emoji: "🎁", color: "#898e46", desc: "Things we want" },
   { id: "bucket", name: "Bucket list", emoji: "🌍", color: "#f29cc3", desc: "Dreams & trips" },
+  { id: "wish", name: "Wish list", emoji: "🎁", color: "#898e46", desc: "Things we want" },
+  { id: "norsk", name: "Norskkurs", emoji: "🇳🇴", color: "#7eb6c9", desc: "Norwegian together" },
 ];
 const fgOn = (hex) => {
   const n = parseInt(hex.slice(1), 16);
@@ -21,7 +22,7 @@ const header = document.querySelector(".top");
 
 sections.forEach((s) => {
   const b = document.createElement("button");
-  b.className = "tile";
+  b.className = "tile" + (s.id === "norsk" ? " tile-wide" : "");
   b.style.setProperty("--c", s.color);
   b.style.setProperty("--fg", fgOn(s.color));
   b.innerHTML = `<span class="name">${s.name}</span><span class="desc">${s.desc}</span>
@@ -77,6 +78,7 @@ function show(id) {
   else if (id === "shopping") window.renderShopping(body);
   else if (id === "todo") window.renderTodo(body);
   else if (id === "budget") window.renderBudget(body);
+  else if (id === "norsk") window.renderNorsk(body);
   else body.innerHTML = "<p>Coming soon — we'll build this one next.</p>";
   grid.hidden = header.hidden = true;
   topbar.hidden = false;
@@ -155,5 +157,5 @@ document.getElementById("theme-seg").onclick = (e) => {
   applyTheme(b.dataset.theme);
 };
 
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=184", { updateViaCache: "none" }).then((r) => r.update());
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=198", { updateViaCache: "none" }).then((r) => r.update());
 
