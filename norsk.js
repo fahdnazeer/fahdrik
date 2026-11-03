@@ -311,7 +311,12 @@
       render();
     };
 
-    function render() {
+    function render(force) {
+      if (!force && ui.id && !ui.practice && root.querySelector(".nk-sheet")) {
+        const it = state.items.find((x) => x.id === ui.id);
+        if (it) refreshSheet(it);
+        return;
+      }
       const keepName = window.stashFocus ? window.stashFocus(root) : "";
       if (ui.practice) {
         while (ui.i < ui.queue.length && !state.items.some((x) => x.id === ui.queue[ui.i])) ui.i += 1;
@@ -503,8 +508,11 @@
 
     const afterDict = (cur) => {
       if (ui.practice) return;
-      if (cur && ui.id === cur.id && sheetTyping() && refreshSheet(cur)) return;
-      if (!ui.id || (cur && ui.id === cur.id)) render();
+      if (ui.id) {
+        if (cur && ui.id === cur.id) refreshSheet(cur);
+        return;
+      }
+      render();
     };
 
     const fillNoun = async (it) => {
@@ -551,7 +559,7 @@
       afterDict(cur);
     };
 
-    root._rerender = render;
+    root._rerender = () => render();
     render();
 
     root.onsubmit = (e) => {
@@ -564,7 +572,7 @@
       save();
       ui.tab = "learn";
       ui.id = it.id;
-      render();
+      render(true);
       classify(it);
     };
 
@@ -626,7 +634,7 @@
       if (!it) return;
       if (act === "open") {
         ui.id = it.id;
-        render();
+        render(true);
         if (needsNoun(it)) fillNoun(it);
         return;
       }

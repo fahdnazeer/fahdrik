@@ -56,12 +56,23 @@
     if (!name) return;
     const el = root.querySelector(`[name="${CSS && CSS.escape ? CSS.escape(name) : name}"]`);
     if (!el) return;
-    el.focus();
+    const already = document.activeElement === el;
+    if (!already) el.focus();
+    if (already) return;
     if (keep && typeof keep.start === "number") {
       try { el.setSelectionRange(keep.start, keep.end); } catch (_) {}
       if (typeof keep.scroll === "number") el.scrollTop = keep.scroll;
     }
   };
+
+  function staleRemote(key, data) {
+    if (timers[key]) return true;
+    const local = localGet(key);
+    if (!local || typeof local !== "object" || Array.isArray(local)) return false;
+    const a = Number(local.savedAt) || 0;
+    const b = Number(data && data.savedAt) || 0;
+    return a > b;
+  }
 
   function rerender(key) {
     const body = document.getElementById("detail-body");
@@ -116,7 +127,7 @@
     const have = new Set((rows || []).map((r) => r.id));
     for (const row of rows || []) {
       const json = JSON.stringify(row.data);
-      if (json === ignore[row.id] || json === localStorage.getItem(row.id)) continue;
+      if (json === ignore[row.id] || json === localStorage.getItem(row.id) || staleRemote(row.id, row.data)) continue;
       ignore[row.id] = json;
       localSet(row.id, row.data);
       notify(row.id, row.data);
@@ -136,7 +147,7 @@
         const row = payload.new;
         if (!row || !row.id) return;
         const json = JSON.stringify(row.data);
-        if (json === ignore[row.id] || json === localStorage.getItem(row.id)) return;
+        if (json === ignore[row.id] || json === localStorage.getItem(row.id) || staleRemote(row.id, row.data)) return;
         ignore[row.id] = json;
         localSet(row.id, row.data);
         notify(row.id, row.data);
@@ -170,11 +181,15 @@
       return v == null ? fallback : v;
     },
     save: (key, data) => {
+      if (data && typeof data === "object" && !Array.isArray(data)) data.savedAt = Date.now();
       ignore[key] = JSON.stringify(data);
       localSet(key, data);
       if (READONLY.has(key) || !sb || !userOf() || !allowed(userOf())) return;
       clearTimeout(timers[key]);
-      timers[key] = setTimeout(() => upsert(key, data), 350);
+      timers[key] = setTimeout(() => {
+        delete timers[key];
+        upsert(key, localGet(key, data));
+      }, 350);
     },
     watchState: (key, state) => {
       (watchers[key] = watchers[key] || []).push((data) => {
