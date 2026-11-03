@@ -31,7 +31,9 @@
     return "";
   };
 
-  const headword = (w) => String(w || "").trim().toLowerCase().replace(/^å\s+/, "").replace(/[.!?]+$/, "");
+  const noWord = (w) => String(w || "").trim().toLocaleLowerCase("nb");
+  const headword = (w) => noWord(w).replace(/^å\s+/, "").replace(/[.!?]+$/, "");
+  const lemma = (it) => noWord(it && it.no);
 
   const GENDER = {
     m: { art: "en", name: "hankjønn" },
@@ -41,10 +43,44 @@
   };
   const nounArt = (it) => (GENDER[it && it.gender] || {}).art || "";
   const nounName = (it) => (GENDER[it && it.gender] || {}).name || "";
-  const nounSg = (it) => [nounArt(it), it && it.no].filter(Boolean).join(" ");
+  const splitForms = (s) => String(s || "").split("/").map((x) => x.trim()).filter(Boolean);
+  const artForDef = (def, gender) => {
+    if (/a$/i.test(def) && !/ene$/i.test(def)) return "ei";
+    if (/et$/i.test(def)) return "et";
+    if (/en$/i.test(def)) return "en";
+    if (gender === "f") return "ei";
+    if (gender === "n") return "et";
+    return "en";
+  };
+  const rankArt = (s) => (String(s).startsWith("en ") ? 0 : String(s).startsWith("ei ") ? 1 : 2);
+  const nounSgPairs = (it) => {
+    const word = lemma(it);
+    if (!word) return [];
+    const defs = splitForms(it.def);
+    if (!defs.length) {
+      if (it.gender === "c") return [["en " + word, ""], ["ei " + word, ""]];
+      const art = nounArt(it);
+      if (art.includes("/")) return [["en " + word, ""], ["ei " + word, ""]];
+      return [[[art, word].filter(Boolean).join(" "), ""]];
+    }
+    return defs.map((d) => [artForDef(d, it.gender) + " " + word, d]).sort((a, b) => rankArt(a[0]) - rankArt(b[0]));
+  };
+  const nounPlPairs = (it) => {
+    const pls = splitForms(it.pl);
+    const defs = splitForms(it.defPl);
+    const pl = pls[0] || lemma(it) || "";
+    if (!pl && !defs.length) return [];
+    if (!defs.length) return [[pl, ""]];
+    return defs.map((d) => [pl, d]);
+  };
+  const declRows = (pairs, label) =>
+    pairs.map((p, i) => `<span>${i ? "" : label}</span><b>${esc(p[0])}</b><b>${esc(p[1] || "—")}</b>`).join("");
+  const nounSg = (it) => (nounSgPairs(it)[0] || [])[0] || lemma(it) || "";
   const nounMeta = (it) => {
     if (!it || it.cat !== "noun") return "";
-    return [nounArt(it), it.def, it.pl ? "flertall " + it.pl : ""].filter(Boolean).join(" · ");
+    const sg = nounSgPairs(it)[0];
+    const pl = nounPlPairs(it)[0];
+    return [sg && sg.filter(Boolean).join(" · "), pl && pl[0] ? "flertall " + pl.filter(Boolean).join(" · ") : ""].filter(Boolean).join(" · ");
   };
   const needsNoun = (it) => it && it.nounVer !== 3 && it.no && !/\s/.test(headword(it.no));
 
@@ -299,11 +335,27 @@
               <span>${n} / ${total}</span>
             </div>
             <button type="button" class="nk-card${ui.flipped ? " on" : ""}" data-act="flip">
-              <small>${ui.flipped ? "English" : "Norsk"}${catName(it.cat) ? " · " + catName(it.cat) : ""}${!ui.flipped && nounName(it) ? " · " + nounName(it) : ""}</small>
-              <b>${esc(ui.flipped ? it.en : nounSg(it) || it.no)}</b>
-              ${!ui.flipped && (it.pl || it.def) ? `<span>${[it.def ? "bestemt " + it.def : "", it.pl ? "flertall " + it.pl : "", it.defPl ? "bestemt flertall " + it.defPl : ""].filter(Boolean).join(" · ")}</span>` : ""}
-              ${ui.flipped && it.also && it.also.length ? `<span>Also ${esc(it.also.join(" · "))}</span>` : ""}
-              ${ui.flipped && it.note ? `<span>${esc(it.note)}</span>` : `<em>${ui.flipped ? "Tap for Norwegian" : "Tap to flip"}</em>`}
+              <small>${ui.flipped ? "English" : "Norsk"}${catName(it.cat) ? " · " + catName(it.cat) : ""}</small>
+              <b>${esc(ui.flipped ? it.en : lemma(it))}</b>
+              ${
+                !ui.flipped && (it.pl || it.def)
+                  ? `<div class="nk-card-forms">
+                      ${nounName(it) ? `<p class="nk-forms-g">${esc(nounName(it))}</p>` : ""}
+                      <div class="nk-decl">
+                        <span></span><span>Ubestemt</span><span>Bestemt</span>
+                        ${declRows(nounSgPairs(it), "Entall")}
+                        ${declRows(nounPlPairs(it), "Flertall")}
+                      </div>
+                    </div>`
+                  : ""
+              }
+              ${
+                ui.flipped && it.also && it.also.length
+                  ? `<ul class="nk-also">${it.also.slice(0, 3).map((s) => `<li>${esc(s)}</li>`).join("")}</ul>`
+                  : ""
+              }
+              ${ui.flipped && it.note ? `<span class="nk-card-note">${esc(it.note)}</span>` : ""}
+              <em>${ui.flipped ? "Tap for Norwegian" : "Tap to flip"}</em>
             </button>
             ${
               ui.flipped
@@ -358,7 +410,7 @@
                   (it) => `<li class="${it.known ? "done" : ""}" data-id="${it.id}">
                     <button type="button" class="check" data-act="toggle" aria-label="${it.known ? "Still learning" : "I know this"}">${it.known ? "✓" : ""}</button>
                     <button type="button" class="nk-txt" data-act="open">
-                      <b>${esc(it.no)}</b>
+                      <b>${esc(lemma(it))}</b>
                       ${it.en ? `<span>${esc(it.en)}</span>` : ""}
                       ${it.cat || it.note || it.pl || it.gender || (it.also && it.also.length) ? `<small>${[catName(it.cat), nounMeta(it), it.also && it.also.length ? it.also.length + " more meaning" + (it.also.length > 1 ? "s" : "") : "", it.note ? "Has a note" : ""].filter(Boolean).join(" · ")}</small>` : ""}
                     </button>
@@ -375,7 +427,7 @@
             ? `<div class="cal-overlay">
                 <div class="cal-sheet nk-sheet" role="dialog" aria-labelledby="nk-word">
                   <button type="button" class="cal-sheet-x" data-act="close" aria-label="Close">✕</button>
-                  <h3 id="nk-word">${esc(nounSg(editing) || editing.no)}</h3>
+                  <h3 id="nk-word">${esc(nounSg(editing) || lemma(editing))}</h3>
                   ${editing.en ? `<p>${esc(editing.en)}</p>` : `<p>No translation yet</p>`}
                   ${
                     editing.also && editing.also.length
@@ -391,8 +443,8 @@
                           ${nounName(editing) ? `<p class="nk-forms-g">${esc(nounName(editing))}</p>` : ""}
                           <div class="nk-decl">
                             <span></span><span>Ubestemt</span><span>Bestemt</span>
-                            <span>Entall</span><b>${esc(nounSg(editing))}</b><b>${esc(editing.def || "—")}</b>
-                            <span>Flertall</span><b>${esc(editing.pl || "—")}</b><b>${esc(editing.defPl || "—")}</b>
+                            ${declRows(nounSgPairs(editing), "Entall")}
+                            ${declRows(nounPlPairs(editing), "Flertall")}
                           </div>
                         </div>`
                       : ""
@@ -460,7 +512,7 @@
 
     root.onsubmit = (e) => {
       e.preventDefault();
-      const no = e.target.no.value.trim();
+      const no = noWord(e.target.no.value);
       if (!no) return;
       const en = e.target.en.value.trim();
       const it = { id: uid(), no, en, enManual: !!en, cat: "", known: false, added: Date.now() };

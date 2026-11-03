@@ -860,16 +860,20 @@ button.who:active { transform: scale(.94); }
 .nk-drill-bar .r-back { margin: 0; }
 .nk-drill-bar span { margin-left: auto; }
 .nk-card {
-  min-height: 220px; padding: 22px 20px;
+  min-height: 220px; padding: 20px 18px 18px;
   border: 0; border-radius: 22px;
   background: var(--chip); color: var(--text);
   font: inherit; text-align: left; cursor: pointer;
-  display: grid; align-content: center; gap: 10px;
+  display: grid; align-content: start; gap: 8px;
 }
-.nk-card small { color: var(--muted); text-transform: uppercase; letter-spacing: .04em; font-size: .72rem; }
-.nk-card b { font-size: 1.7rem; line-height: 1.25; font-weight: 700; }
-.nk-card em { color: var(--muted); font-style: normal; font-size: .85rem; }
-.nk-card span { color: var(--muted); font-size: .9rem; line-height: 1.4; }
+.nk-card small { color: var(--muted); text-transform: uppercase; letter-spacing: .04em; font-size: .68rem; }
+.nk-card > b { font-size: 1.55rem; line-height: 1.25; font-weight: 700; }
+.nk-card em { color: var(--muted); font-style: normal; font-size: .8rem; margin-top: 4px; }
+.nk-card-note { color: var(--muted); font-size: .88rem; line-height: 1.4; }
+.nk-card-forms { margin-top: 6px; padding-top: 10px; border-top: 1px solid rgb(var(--ov) / 10%); }
+.nk-card .nk-forms-g { margin-bottom: 6px; }
+.nk-card .nk-decl { gap: 4px 8px; }
+.nk-card .nk-also { margin: 2px 0 0; }
 .nk-card.on { background: #7eb6c926; box-shadow: inset 0 0 0 1px #7eb6c955; }
 .nk-grades { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
 .nk-grades button {

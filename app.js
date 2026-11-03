@@ -156,5 +156,5 @@ document.getElementById("theme-seg").onclick = (e) => {
   applyTheme(b.dataset.theme);
 };
 
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=202", { updateViaCache: "none" }).then((r) => r.update());
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=206", { updateViaCache: "none" }).then((r) => r.update());
 
